@@ -5,6 +5,15 @@ CREATE TABLE IF NOT EXISTS reservation_time (
     UNIQUE(start_at)
     );
 
+CREATE TABLE IF NOT EXISTS member (
+    id          BIGINT          NOT NULL AUTO_INCREMENT,
+    name        VARCHAR(50)     NOT NULL,
+    email       VARCHAR(100)    NOT NULL,
+    password    VARCHAR(50)     NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE (email)
+);
+
 CREATE TABLE IF NOT EXISTS theme (
     id       BIGINT       NOT NULL AUTO_INCREMENT,
     name     VARCHAR(255) NOT NULL,
@@ -16,14 +25,15 @@ CREATE TABLE IF NOT EXISTS theme (
 
 CREATE TABLE IF NOT EXISTS reservation (
     id      BIGINT       NOT NULL AUTO_INCREMENT,
-    name    VARCHAR(255) NOT NULL,
+    member_id BIGINT NOT NULL,
     date    DATE NOT NULL,
     time_id BIGINT NOT NULL,
     theme_id BIGINT NOT NULL,
     PRIMARY KEY (id),
+    FOREIGN KEY (member_id) REFERENCES member (id),
     FOREIGN KEY (time_id) REFERENCES reservation_time (id),
     FOREIGN KEY (theme_id) REFERENCES theme (id),
     UNIQUE (date, time_id, theme_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_reservation_name ON reservation (name);
+CREATE INDEX IF NOT EXISTS idx_reservation_member_id ON reservation (member_id);
