@@ -5,29 +5,27 @@ import java.time.LocalDateTime;
 import roomescape.exception.UnprocessableException;
 
 public class Reservation {
-    private static final int MAX_NAME_LENGTH = 255;
 
     private final Long id;
-    private final String name;
+    private final Member member;
     private final LocalDate date;
     private final ReservationTime time;
     private final Theme theme;
 
-    public Reservation(Long id, String name, LocalDate date, ReservationTime time, Theme theme) {
-        validateName(name);
+    public Reservation(Long id, Member member, LocalDate date, ReservationTime time, Theme theme) {
         validateDate(date);
         validateTime(time);
         validateTheme(theme);
 
         this.id = id;
-        this.name = name;
+        this.member = member;
         this.date = date;
         this.time = time;
         this.theme = theme;
     }
 
-    public Reservation(String name, LocalDate date, ReservationTime time, Theme theme, LocalDateTime now) {
-        this(null, name, date, time, theme);
+    public Reservation(Member member, LocalDate date, ReservationTime time, Theme theme, LocalDateTime now) {
+        this(null, member, date, time, theme);
         validateCreatable(date, time, now);
     }
 
@@ -35,8 +33,8 @@ public class Reservation {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public Member getMember() {
+        return member;
     }
 
     public LocalDate getDate() {
@@ -58,7 +56,7 @@ public class Reservation {
         LocalDateTime updateDateAndTime = LocalDateTime.of(updateDate, updateTime.getStartAt());
         validateNotPast(updateDateAndTime, now, "지난 날짜로 예약을 변경할 수 없습니다. 현재 이후의 날짜를 선택해주세요.");
 
-        return new Reservation(this.id, this.name, updateDate, updateTime, this.theme);
+        return new Reservation(this.id, this.member, updateDate, updateTime, this.theme);
     }
 
     public Long getCancelId(LocalDateTime now) {
@@ -87,16 +85,6 @@ public class Reservation {
     private void validateNotPast(LocalDateTime target, LocalDateTime now, String message) {
         if (isPast(target, now)) {
             throw new UnprocessableException(message);
-        }
-    }
-
-    private void validateName(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("이름은 비어 있을 수 없습니다. 이름을 입력해주세요.");
-        }
-        if (name.length() > MAX_NAME_LENGTH) {
-            throw new IllegalArgumentException(
-                    String.format("이름은 %d자를 넘을 수 없습니다. %d자 이내로 입력해주세요.", MAX_NAME_LENGTH, MAX_NAME_LENGTH));
         }
     }
 

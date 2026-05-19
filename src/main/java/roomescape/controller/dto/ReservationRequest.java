@@ -8,10 +8,6 @@ import roomescape.controller.ValidationMessage;
 
 public record ReservationRequest(
 
-        @NotBlank(message = ValidationMessage.NAME_IS_BLANK)
-        @Size(max = 255, message = ValidationMessage.NAME_OVER_MAX_LENGTH)
-        String name,
-
         @NotNull(message = ValidationMessage.DATE_IS_NULL)
         LocalDate date,
 

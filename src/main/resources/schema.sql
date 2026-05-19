@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS reservation_time (
 CREATE TABLE IF NOT EXISTS member (
     id          BIGINT          NOT NULL AUTO_INCREMENT,
     name        VARCHAR(50)     NOT NULL,
-    email       VARCHAR(100)    NOT NULL,
+    email       VARCHAR(50)    NOT NULL,
     password    VARCHAR(50)     NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (email)

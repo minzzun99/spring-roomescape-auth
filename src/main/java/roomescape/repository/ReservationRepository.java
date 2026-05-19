@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import roomescape.domain.Member;
 import roomescape.domain.Reservation;
 import roomescape.domain.ReservationTime;
 import roomescape.domain.Theme;
@@ -26,7 +27,10 @@ public class ReservationRepository {
     public List<Reservation> findAll() {
         String sql = "SELECT\n" +
                 "    r.id as reservation_id,\n" +
-                "    r.name as username,\n" +
+                "    m.id as member_id,\n" +
+                "    m.name as member_name,\n" +
+                "    m.email,\n" +
+                "    m.password,\n" +
                 "    r.date,\n" +
                 "    rt.id as time_id,\n" +
                 "    rt.start_at as time_value,\n" +
@@ -35,6 +39,8 @@ public class ReservationRepository {
                 "    t.description,\n" +
                 "    t.thumbnail\n" +
                 "FROM reservation as r\n" +
+                "INNER JOIN member as m\n" +
+                "  ON r.member_id = m.id\n" +
                 "INNER JOIN reservation_time as rt\n" +
                 "  ON r.time_id = rt.id\n" +
                 "INNER JOIN theme as t\n" +
@@ -46,7 +52,10 @@ public class ReservationRepository {
     public List<Reservation> findByName(String name) {
         String sql = "SELECT\n" +
                 "    r.id as reservation_id,\n" +
-                "    r.name as username,\n" +
+                "    m.id as member_id,\n" +
+                "    m.name as member_name,\n" +
+                "    m.email,\n" +
+                "    m.password,\n" +
                 "    r.date,\n" +
                 "    rt.id as time_id,\n" +
                 "    rt.start_at as time_value,\n" +
@@ -55,30 +64,32 @@ public class ReservationRepository {
                 "    t.description,\n" +
                 "    t.thumbnail\n" +
                 "FROM reservation as r\n" +
+                "INNER JOIN member as m\n" +
+                "  ON r.member_id = m.id\n" +
                 "INNER JOIN reservation_time as rt\n" +
                 "  ON r.time_id = rt.id\n" +
                 "INNER JOIN theme as t\n" +
                 "  ON r.theme_id = t.id\n" +
-                "WHERE r.name = ?\n";
+                "WHERE m.name = ?\n";
 
         return jdbcTemplate.query(sql, reservationRowMapper, name);
     }
 
     public Reservation insert(Reservation reservation) {
-        String sql = "INSERT INTO reservation(name, date, time_id, theme_id) VALUES (?, ?, ?, ?);";
+        String sql = "INSERT INTO reservation(member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?);";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement pstmt = connection.prepareStatement(
                     sql,
                     new String[]{"id"});
-            pstmt.setString(1, reservation.getName());
+            pstmt.setLong(1, reservation.getMember().getId());
             pstmt.setObject(2, reservation.getDate());
             pstmt.setLong(3, reservation.getTime().getId());
             pstmt.setLong(4, reservation.getTheme().getId());
             return pstmt;
         }, keyHolder);
 
-        return new Reservation(keyHolder.getKey().longValue(), reservation.getName(), reservation.getDate(),
+        return new Reservation(keyHolder.getKey().longValue(), reservation.getMember(), reservation.getDate(),
                 reservation.getTime(), reservation.getTheme());
     }
 
@@ -90,7 +101,10 @@ public class ReservationRepository {
     public List<Reservation> findReservationsByThemeAndDate(Long themeId, LocalDate date) {
         String sql = "SELECT\n" +
                 "    r.id as reservation_id,\n" +
-                "    r.name as username,\n" +
+                "    m.id as member_id,\n" +
+                "    m.name as member_name,\n" +
+                "    m.email,\n" +
+                "    m.password,\n" +
                 "    r.date,\n" +
                 "    rt.id as time_id,\n" +
                 "    rt.start_at as time_value,\n" +
@@ -99,6 +113,8 @@ public class ReservationRepository {
                 "    t.description,\n" +
                 "    t.thumbnail\n" +
                 "FROM reservation as r\n" +
+                "INNER JOIN member as m\n" +
+                "  ON r.member_id = m.id\n" +
                 "INNER JOIN reservation_time as rt\n" +
                 "  ON r.time_id = rt.id\n" +
                 "INNER JOIN theme as t\n" +
@@ -118,7 +134,10 @@ public class ReservationRepository {
     public Optional<Reservation> findById(Long id) {
         String sql = "SELECT\n" +
                 "    r.id as reservation_id,\n" +
-                "    r.name as username,\n" +
+                "    m.id as member_id,\n" +
+                "    m.name as member_name,\n" +
+                "    m.email,\n" +
+                "    m.password,\n" +
                 "    r.date,\n" +
                 "    rt.id as time_id,\n" +
                 "    rt.start_at as time_value,\n" +
@@ -127,6 +146,8 @@ public class ReservationRepository {
                 "    t.description,\n" +
                 "    t.thumbnail\n" +
                 "FROM reservation as r\n" +
+                "INNER JOIN member as m\n" +
+                "  ON r.member_id = m.id\n" +
                 "INNER JOIN reservation_time as rt\n" +
                 "  ON r.time_id = rt.id\n" +
                 "INNER JOIN theme as t\n" +
@@ -168,10 +189,15 @@ public class ReservationRepository {
                 resultSet.getString("theme_name"),
                 resultSet.getString("description"),
                 resultSet.getString("thumbnail"));
+        Member member = new Member(
+                resultSet.getLong("member_id"),
+                resultSet.getString("member_name"),
+                resultSet.getString("email"),
+                resultSet.getString("password"));
 
         return new Reservation(
                 resultSet.getLong("reservation_id"),
-                resultSet.getString("username"),
+                member,
                 resultSet.getObject("date", LocalDate.class),
                 time,
                 theme);
