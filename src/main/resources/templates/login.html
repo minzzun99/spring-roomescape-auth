@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESCAPE - 로그인</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0a0a0c;
+            --surface: #131317;
+            --surface-2: #1a1a20;
+            --border: rgba(255,255,255,0.07);
+            --border-hover: rgba(255,255,255,0.16);
+            --accent: #c8a96e;
+            --accent-dim: rgba(200,169,110,0.1);
+            --text-primary: #ede9e0;
+            --text-secondary: #8a8680;
+            --text-muted: #4a4845;
+            --danger: #e05252;
+            --success: #4caf7d;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text-primary);
+            font-family: 'Noto Sans KR', sans-serif;
+            font-weight: 300;
+            min-height: 100vh;
+        }
+
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 3rem;
+            background: rgba(10,10,12,0.86);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem;
+            font-weight: 300;
+            letter-spacing: 0.25em;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .nav-logo span { color: var(--accent); }
+
+        .nav-back {
+            font-size: 0.72rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nav-back:hover { color: var(--accent); }
+
+        main {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(360px, 440px);
+            align-items: stretch;
+        }
+
+        .visual {
+            position: relative;
+            min-height: 100vh;
+            padding: 9rem 4rem 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overflow: hidden;
+            border-right: 1px solid var(--border);
+        }
+
+        .visual::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                    linear-gradient(rgba(10,10,12,0.15), rgba(10,10,12,0.9)),
+                    url('/images/themes/12.png') center / cover no-repeat;
+            opacity: 0.72;
+        }
+
+        .visual::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                    linear-gradient(var(--border) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 56px 56px;
+            mask-image: linear-gradient(to bottom, transparent, black 35%, black);
+        }
+
+        .visual-content {
+            position: relative;
+            z-index: 1;
+            max-width: 620px;
+        }
+
+        .eyebrow {
+            font-size: 0.68rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(3.2rem, 7vw, 6rem);
+            font-weight: 300;
+            line-height: 1.05;
+            letter-spacing: 0.02em;
+            margin-bottom: 1rem;
+        }
+
+        h1 em {
+            font-style: italic;
+            color: var(--accent);
+        }
+
+        .desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.8;
+            word-break: keep-all;
+        }
+
+        .panel-wrap {
+            min-height: 100vh;
+            padding: 8rem 3rem 4rem;
+            display: flex;
+            align-items: center;
+            background: var(--bg);
+        }
+
+        .login-panel {
+            width: 100%;
+        }
+
+        .panel-label {
+            font-size: 0.68rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.8rem;
+        }
+
+        .panel-title {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 1.65rem;
+            font-weight: 400;
+            margin-bottom: 0.7rem;
+        }
+
+        .panel-copy {
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            line-height: 1.7;
+            margin-bottom: 2.2rem;
+        }
+
+        .field {
+            margin-bottom: 1.1rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.68rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.55rem;
+        }
+
+        input {
+            width: 100%;
+            background: var(--surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.9rem;
+            padding: 0.95rem 1rem;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        input:hover { border-color: var(--border-hover); }
+
+        input:focus {
+            border-color: var(--accent);
+            background: var(--surface-2);
+        }
+
+        .message {
+            min-height: 1.2rem;
+            color: var(--danger);
+            font-size: 0.78rem;
+            line-height: 1.6;
+            margin: 0.5rem 0 1.4rem;
+        }
+
+        .message.success { color: var(--success); }
+
+        .submit-btn {
+            width: 100%;
+            background: var(--accent);
+            color: #1a1200;
+            border: none;
+            border-radius: 4px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 500;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            padding: 1rem 1.2rem;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .submit-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .links {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1.4rem;
+        }
+
+        .links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.76rem;
+            transition: color 0.2s;
+        }
+
+        .links a:hover { color: var(--accent); }
+
+        @media (max-width: 860px) {
+            nav { padding: 1.2rem 1.5rem; }
+
+            main {
+                display: block;
+            }
+
+            .visual {
+                min-height: 42vh;
+                padding: 7rem 1.5rem 2.5rem;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .panel-wrap {
+                min-height: auto;
+                padding: 2.6rem 1.5rem 4rem;
+            }
+
+            h1 { font-size: clamp(2.6rem, 14vw, 4.3rem); }
+        }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="/" class="nav-logo">ESC<span>A</span>PE</a>
+    <a href="/" class="nav-back">홈으로</a>
+</nav>
+
+<main>
+    <section class="visual">
+        <div class="visual-content">
+            <div class="eyebrow">Member Access</div>
+            <h1>예약은<br><em>로그인</em> 후에</h1>
+            <p class="desc">
+                로그인하면 예약 생성과 내 예약 조회를 같은 사용자 기준으로 이어갈 수 있습니다.
+            </p>
+        </div>
+    </section>
+
+    <section class="panel-wrap">
+        <div class="login-panel">
+            <div class="panel-label">Sign In</div>
+            <h2 class="panel-title">로그인</h2>
+            <p class="panel-copy">회원 정보를 입력하고 예약 서비스를 이용하세요.</p>
+
+            <form id="login-form">
+                <div class="field">
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="email" autocomplete="username" placeholder="brown@email.com" required>
+                </div>
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" placeholder="password" required>
+                </div>
+                <div class="message" id="message"></div>
+                <button class="submit-btn" id="submit-btn" type="submit">로그인</button>
+            </form>
+
+            <div class="links">
+                <a href="/reservation">예약 페이지</a>
+                <a href="/my-reservation">내 예약</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    const form = document.getElementById('login-form');
+    const message = document.getElementById('message');
+    const submitBtn = document.getElementById('submit-btn');
+
+    function getRedirectPath() {
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get('redirect');
+        if (!redirect || !redirect.startsWith('/') || redirect.startsWith('//')) {
+            return '/';
+        }
+        return redirect;
+    }
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        message.textContent = '';
+        message.classList.remove('success');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '로그인 중...';
+
+        const payload = {
+            email: document.getElementById('email').value.trim(),
+            password: document.getElementById('password').value
+        };
+
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                let errorMessage = '이메일 또는 비밀번호를 확인해주세요.';
+                try {
+                    const error = await response.json();
+                    errorMessage = error.message || errorMessage;
+                } catch (_) {
+                }
+                throw new Error(errorMessage);
+            }
+
+            message.classList.add('success');
+            message.textContent = '로그인되었습니다.';
+            window.location.href = getRedirectPath();
+        } catch (error) {
+            message.textContent = error.message;
+            submitBtn.disabled = false;
+            submitBtn.textContent = '로그인';
+        }
+    });
+</script>
+</body>
+</html>

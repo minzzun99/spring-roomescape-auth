@@ -38,6 +38,13 @@ public class ReservationController {
                 .toList();
     }
 
+    @GetMapping("/me")
+    public List<ReservationResponse> getMyReservations(@LoginMember Member member) {
+        return reservationService.findByMember(member).stream()
+                .map(ReservationResponse::from)
+                .toList();
+    }
+
     @PostMapping
     public ResponseEntity<ReservationResponse> createReservation(@LoginMember Member member,
                                                                  @Valid @RequestBody ReservationRequest request) {

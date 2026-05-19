@@ -39,6 +39,10 @@ public class ReservationService {
         return reservationRepository.findAll();
     }
 
+    public List<Reservation> findByMember(Member member) {
+        return reservationRepository.findByMemberId(member.getId());
+    }
+
     @Transactional
     public Reservation create(Member member, LocalDate date, Long timeId, Long themeId) {
         validateDuplicateReservation(date, timeId, themeId);

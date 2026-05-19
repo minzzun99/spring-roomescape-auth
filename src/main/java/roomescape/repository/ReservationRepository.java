@@ -75,6 +75,32 @@ public class ReservationRepository {
         return jdbcTemplate.query(sql, reservationRowMapper, name);
     }
 
+    public List<Reservation> findByMemberId(Long memberId) {
+        String sql = "SELECT\n" +
+                "    r.id as reservation_id,\n" +
+                "    m.id as member_id,\n" +
+                "    m.name as member_name,\n" +
+                "    m.email,\n" +
+                "    m.password,\n" +
+                "    r.date,\n" +
+                "    rt.id as time_id,\n" +
+                "    rt.start_at as time_value,\n" +
+                "    t.id as theme_id,\n" +
+                "    t.name as theme_name,\n" +
+                "    t.description,\n" +
+                "    t.thumbnail\n" +
+                "FROM reservation as r\n" +
+                "INNER JOIN member as m\n" +
+                "  ON r.member_id = m.id\n" +
+                "INNER JOIN reservation_time as rt\n" +
+                "  ON r.time_id = rt.id\n" +
+                "INNER JOIN theme as t\n" +
+                "  ON r.theme_id = t.id\n" +
+                "WHERE m.id = ?\n";
+
+        return jdbcTemplate.query(sql, reservationRowMapper, memberId);
+    }
+
     public Reservation insert(Reservation reservation) {
         String sql = "INSERT INTO reservation(member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?);";
         KeyHolder keyHolder = new GeneratedKeyHolder();
