@@ -692,4 +692,90 @@ public class MissionStepTest {
                 .then().log().all()
                 .statusCode(409);
     }
+
+    @Test
+    void 비로그인_예약_생성_시_401_에러_발생() {
+        Map<String, Object> reservation = new HashMap<>();
+        reservation.put("date", "2099-08-05");
+        reservation.put("timeId", 1);
+        reservation.put("themeId", 1);
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(reservation)
+                .when().post("/reservations")
+                .then().log().all()
+                .statusCode(401);
+    }
+
+    @Test
+    void 비로그인_예약_삭제_시_401_에러_발생() {
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .when().delete("/reservations/1")
+                .then().log().all()
+                .statusCode(401);
+    }
+
+    @Test
+    void 비로그인_사용자_이름_예약_조회_시_401_에러_발생() {
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .when().get("/reservations?name=브라운")
+                .then().log().all()
+                .statusCode(401);
+    }
+
+    @Test
+    void 비로그인_전체_예약_조회_시_401_에러_발생() {
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .when().get("/reservations")
+                .then().log().all()
+                .statusCode(401);
+    }
+
+    @Test
+    void 비로그인_예약_변경_시_401_에러_발생() {
+        Map<String, String> params = new HashMap<>();
+        params.put("name", "대길");
+        params.put("date", "2030-08-05");
+        params.put("timeId", "1");
+        params.put("themeId", "1");
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().patch("/reservations/1")
+                .then().log().all()
+                .statusCode(401);
+    }
+
+    @Test
+    void 로그인_성공_테스트() {
+        Map<String, String> params = new HashMap<>();
+        params.put("email", "brown@email.com");
+        params.put("password", "password");
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/login")
+                .then().log().all()
+                .statusCode(200);
+    }
+
+    @Test
+    void 로그인_실패_시_401_에러_발생() {
+        Map<String, String> params = new HashMap<>();
+        params.put("email", "brown@email.com");
+        params.put("password", "fail");
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/login")
+                .then().log().all()
+                .statusCode(401);
+    }
 }
