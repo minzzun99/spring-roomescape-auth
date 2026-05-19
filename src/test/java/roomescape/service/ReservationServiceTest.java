@@ -6,15 +6,16 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import roomescape.domain.Member;
 import roomescape.domain.Reservation;
 import roomescape.exception.ConflictException;
 import roomescape.exception.NotFoundException;
+import roomescape.repository.MemberRepository;
 import roomescape.repository.ReservationRepository;
 import roomescape.repository.ReservationTimeRepository;
 import roomescape.repository.ThemeRepository;
@@ -27,6 +28,8 @@ class ReservationServiceTest {
     private ReservationService reservationService;
 
     private LocalDate date = LocalDate.parse("2099-08-05");
+    private Member brown;
+    private Member jerry;
 
     @BeforeEach
     void setup() {
@@ -36,19 +39,22 @@ class ReservationServiceTest {
         ReservationRepository reservationRepository = new ReservationRepository(jdbcTemplate);
         ReservationTimeRepository reservationTimeRepository = new ReservationTimeRepository(jdbcTemplate);
         ThemeRepository themeRepository = new ThemeRepository(jdbcTemplate);
+        MemberRepository memberRepository = new MemberRepository(jdbcTemplate);
         this.reservationService = new ReservationService(reservationRepository, reservationTimeRepository,
                 themeRepository);
+        this.brown = memberRepository.findByEmail("brown@email.com").orElseThrow();
+        this.jerry = memberRepository.findByEmail("jerry@email.com").orElseThrow();
     }
 
     @Test
     void 예약_생성_테스트() {
         // when
-        Reservation result = reservationService.create("브라운", date, 1L, 1L);
+        Reservation result = reservationService.create(brown, date, 1L, 1L);
 
         // then
         assertAll(
                 () -> assertThat(result.getId()).isNotNull(),
-                () -> assertThat(result.getName()).isEqualTo("브라운"),
+                () -> assertThat(result.getMember().getName()).isEqualTo("브라운"),
                 () -> assertThat(result.getDate()).isEqualTo(date)
         );
     }
@@ -56,8 +62,8 @@ class ReservationServiceTest {
     @Test
     void 전체_예약_조회_테스트() {
         // given
-        reservationService.create("브라운", date, 1L, 1L);
-        reservationService.create("구구", date, 2L, 1L);
+        reservationService.create(brown, date, 1L, 1L);
+        reservationService.create(jerry, date, 2L, 1L);
 
         // when
         List<Reservation> result = reservationService.findAll(null);
@@ -69,9 +75,9 @@ class ReservationServiceTest {
     @Test
     void 사용자_이름으로_예약_조회_테스트() {
         // given
-        reservationService.create("브라운", date, 1L, 1L);
-        reservationService.create("브라운", date, 2L, 1L);
-        reservationService.create("브라운", date, 3L, 1L);
+        reservationService.create(brown, date, 1L, 1L);
+        reservationService.create(brown, date, 2L, 1L);
+        reservationService.create(brown, date, 3L, 1L);
 
         // when
         List<Reservation> result = reservationService.findAll("브라운");
@@ -83,7 +89,7 @@ class ReservationServiceTest {
     @Test
     void 예약_삭제_테스트() {
         // given
-        Reservation created = reservationService.create("브라운", date, 1L, 1L);
+        Reservation created = reservationService.create(brown, date, 1L, 1L);
 
         // when
         reservationService.delete(created.getId());
@@ -95,7 +101,7 @@ class ReservationServiceTest {
     @Test
     void 존재하지않는_timeId로_예약_생성_시_예외_발생() {
         // when & then
-        assertThatThrownBy(() -> reservationService.create("홍길동", date, 999L, 1L))
+        assertThatThrownBy(() -> reservationService.create(brown, date, 999L, 1L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("존재하지 않는 예약 시간입니다. 시간대를 확인해주세요.");
     }
@@ -103,7 +109,7 @@ class ReservationServiceTest {
     @Test
     void 존재하지않는_themeId로_예약_생성_시_예외_발생() {
         // when & then
-        assertThatThrownBy(() -> reservationService.create("홍길동", date, 1L, 999L))
+        assertThatThrownBy(() -> reservationService.create(brown, date, 1L, 999L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("존재하지 않는 테마입니다. 테마를 확인해주세요.");
     }
@@ -119,10 +125,10 @@ class ReservationServiceTest {
     @Test
     void 중복_예약_시_예외_발생() {
         // given
-        reservationService.create("브라운", date, 1L, 1L);
+        reservationService.create(brown, date, 1L, 1L);
 
         // when & then
-        assertThatThrownBy(() -> reservationService.create("브라운", date, 1L, 1L))
+        assertThatThrownBy(() -> reservationService.create(brown, date, 1L, 1L))
                 .isInstanceOf(ConflictException.class)
                 .hasMessage("이미 예약된 시간입니다. 다른 날짜 혹은 테마를 선택해주세요.");
     }

@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,8 +118,8 @@ class ReservationTimeServiceTest {
 
     private void createReservation(LocalDate date, Long timeId, Long themeId) {
         jdbcTemplate.update(
-                "INSERT INTO reservation(name, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                "브라운", date, timeId, themeId
+                "INSERT INTO reservation(member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
+                1L, date, timeId, themeId
         );
     }
 }

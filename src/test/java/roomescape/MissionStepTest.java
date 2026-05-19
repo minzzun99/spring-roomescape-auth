@@ -12,9 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -37,9 +34,24 @@ public class MissionStepTest {
         jdbcTemplate.update("ALTER TABLE reservation ALTER COLUMN id RESTART WITH 1;");
     }
 
+    private Map<String, String> loginSuccess() {
+        Map<String, String> login = new HashMap<>();
+        login.put("email", "brown@email.com");
+        login.put("password", "password");
+
+        return RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(login)
+                .when().post("/login")
+                .then().statusCode(200)
+                .extract().cookies();
+    }
+
     @Test
     void 예약_조회() {
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
+                .contentType(ContentType.JSON)
                 .when().get("/reservations")
                 .then().log().all()
                 .statusCode(200)
@@ -55,6 +67,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -63,17 +76,23 @@ public class MissionStepTest {
                 .body("id", is(1));
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
+                .contentType(ContentType.JSON)
                 .when().get("/reservations")
                 .then().log().all()
                 .statusCode(200)
                 .body("size()", is(1));
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
+                .contentType(ContentType.JSON)
                 .when().delete("/reservations/1")
                 .then().log().all()
                 .statusCode(204);
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
+                .contentType(ContentType.JSON)
                 .when().get("/reservations")
                 .then().log().all()
                 .statusCode(200)
@@ -93,10 +112,12 @@ public class MissionStepTest {
 
     @Test
     void DB_조회_API_전환() {
-        jdbcTemplate.update("INSERT INTO reservation (name, date, time_id, theme_id) VALUES (?, ?, ?, ?)", "브라운",
+        jdbcTemplate.update("INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)", 1,
                 "2023-08-05", 1, 1);
 
         int size = RestAssured.given().log().all()
+                .cookies(loginSuccess())
+                .contentType(ContentType.JSON)
                 .when().get("/reservations")
                 .then().log().all()
                 .statusCode(200).extract()
@@ -116,6 +137,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -126,6 +148,8 @@ public class MissionStepTest {
         assertThat(count).isEqualTo(1);
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
+                .contentType(ContentType.JSON)
                 .when().delete("/reservations/1")
                 .then().log().all()
                 .statusCode(204);
@@ -169,6 +193,7 @@ public class MissionStepTest {
         reservation.put("themeId", 1);
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(reservation)
                 .when().post("/reservations")
@@ -176,6 +201,8 @@ public class MissionStepTest {
                 .statusCode(201);
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
+                .contentType(ContentType.JSON)
                 .when().get("/reservations")
                 .then().log().all()
                 .statusCode(200)
@@ -191,6 +218,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -204,6 +232,7 @@ public class MissionStepTest {
         params.put("themeId", "2");
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().patch("/reservations/1")
@@ -276,6 +305,7 @@ public class MissionStepTest {
                 .statusCode(200);
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .when().get("/admin")
                 .then().log().all()
                 .statusCode(200);
@@ -287,13 +317,10 @@ public class MissionStepTest {
     }
 
 
-    @ParameterizedTest
-    @NullSource
-    @ValueSource(strings = {"", " "})
-    void 이름이_빈_경우_400_에러_발생(String input) {
+    @Test
+    void 로그인하지_않고_예약_생성_시_401_에러_발생() {
         Map<String, Object> reservation = new HashMap<>();
-        reservation.put("name", input);
-        reservation.put("date", "2023-08-05");
+        reservation.put("date", "2099-08-05");
         reservation.put("timeId", 1);
         reservation.put("themeId", 1);
 
@@ -302,7 +329,7 @@ public class MissionStepTest {
                 .body(reservation)
                 .when().post("/reservations")
                 .then().log().all()
-                .statusCode(400);
+                .statusCode(401);
     }
 
     @Test
@@ -314,6 +341,7 @@ public class MissionStepTest {
         reservation.put("themeId", 1);
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(reservation)
                 .when().post("/reservations")
@@ -330,6 +358,7 @@ public class MissionStepTest {
         reservation.put("themeId", 1);
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(reservation)
                 .when().post("/reservations")
@@ -346,6 +375,7 @@ public class MissionStepTest {
         reservation.put("themeId", null);
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(reservation)
                 .when().post("/reservations")
@@ -356,6 +386,8 @@ public class MissionStepTest {
     @Test
     void 존재하지_않는_예약_삭제_시_404_에러_발생() {
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
+                .contentType(ContentType.JSON)
                 .when().delete("/reservations/999")
                 .then().log().all()
                 .statusCode(404);
@@ -370,12 +402,14 @@ public class MissionStepTest {
         params.put("themeId", 1);
 
         RestAssured.given()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
                 .then().statusCode(201);
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -392,6 +426,7 @@ public class MissionStepTest {
         params.put("themeId", 1);
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -408,6 +443,7 @@ public class MissionStepTest {
         params.put("themeId", 999);
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -424,6 +460,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -440,6 +477,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -456,6 +494,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -463,6 +502,7 @@ public class MissionStepTest {
                 .statusCode(201);
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().delete("/times/1")
@@ -510,6 +550,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -517,6 +558,7 @@ public class MissionStepTest {
                 .statusCode(201);
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().delete("/themes/1")
@@ -560,8 +602,8 @@ public class MissionStepTest {
     @Test
     void 지난_날짜의_예약_삭제_시_422_에러_발생() {
         jdbcTemplate.update(
-                "INSERT INTO reservation (name, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                "브라운", "2020-08-05", 1, 1
+                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
+                1, "2020-08-05", 1, 1
         );
 
         Map<String, String> params = new HashMap<>();
@@ -571,6 +613,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().delete("/reservations/1")
@@ -581,8 +624,8 @@ public class MissionStepTest {
     @Test
     void 지난_시간으로의_예약변경_시_422_에러_발생() {
         jdbcTemplate.update(
-                "INSERT INTO reservation (name, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                "브라운", "2030-08-05", 1, 1
+                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
+                1, "2030-08-05", 1, 1
         );
         Map<String, String> params = new HashMap<>();
         params.put("name", "브라운");
@@ -591,6 +634,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().patch("/reservations/1")
@@ -601,8 +645,8 @@ public class MissionStepTest {
     @Test
     void 지난_날짜의_예약_변경_요청_시_422_에러_발생() {
         jdbcTemplate.update(
-                "INSERT INTO reservation (name, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                "브라운", "2000-08-05", 1, 1
+                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
+                1, "2000-08-05", 1, 1
         );
         Map<String, String> params = new HashMap<>();
         params.put("name", "브라운");
@@ -611,6 +655,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().patch("/reservations/1")
@@ -622,14 +667,14 @@ public class MissionStepTest {
     void 변경하려는_시간이_이미_예약되어있는_경우_409_에러_발생() {
         // 1. 기존 예약
         jdbcTemplate.update(
-                "INSERT INTO reservation (name, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                "브라운", "2030-08-05", 1, 1
+                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
+                1, "2030-08-05", 1, 1
         );
 
         // 2. 변경할 기존 예약
         jdbcTemplate.update(
-                "INSERT INTO reservation (name, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                "대길", "2030-08-05", 2, 1
+                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
+                2, "2030-08-05", 2, 1
         );
 
         // 3. 예약 변경 (1번 예약과 중복)
@@ -640,6 +685,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
+                .cookies(loginSuccess())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().patch("/reservations/2")
