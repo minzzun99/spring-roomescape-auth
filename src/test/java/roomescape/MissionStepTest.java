@@ -333,6 +333,34 @@ public class MissionStepTest {
     }
 
     @Test
+    void 로그인_사용자_예약_조회() {
+        jdbcTemplate.update(
+                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
+                1, "2099-08-05", 1, 1
+        );
+        jdbcTemplate.update(
+                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
+                2, "2099-08-05", 2, 1
+        );
+
+        RestAssured.given().log().all()
+                .cookies(loginSuccess())
+                .when().get("/reservations/me")
+                .then().log().all()
+                .statusCode(200)
+                .body("size()", is(1))
+                .body("[0].name", is("브라운"));
+    }
+
+    @Test
+    void 비로그인_내_예약_조회_시_401_에러_발생() {
+        RestAssured.given().log().all()
+                .when().get("/reservations/me")
+                .then().log().all()
+                .statusCode(401);
+    }
+
+    @Test
     void 날짜가_Null인_경우_400_에러_발생() {
         Map<String, Object> reservation = new HashMap<>();
         reservation.put("name", "브라운");
