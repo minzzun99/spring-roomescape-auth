@@ -23,16 +23,13 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final ReservationTimeRepository reservationTimeRepository;
     private final ThemeRepository themeRepository;
-    private final MemberRepository memberRepository;
 
     public ReservationService(ReservationRepository reservationRepository,
-                              ReservationTimeRepository reservationTimeRepository, ThemeRepository themeRepository,
-                              MemberRepository memberRepository) {
+                              ReservationTimeRepository reservationTimeRepository, ThemeRepository themeRepository) {
 
         this.reservationRepository = reservationRepository;
         this.reservationTimeRepository = reservationTimeRepository;
         this.themeRepository = themeRepository;
-        this.memberRepository = memberRepository;
     }
 
     public List<Reservation> findAll(String name) {
@@ -43,19 +40,12 @@ public class ReservationService {
     }
 
     @Transactional
-    public Reservation create(Long memberId, String name, LocalDate date, Long timeId, Long themeId) {
+    public Reservation create(Member member, LocalDate date, Long timeId, Long themeId) {
         validateDuplicateReservation(date, timeId, themeId);
-
-        Member member = findMember(memberId);
         ReservationTime time = findReservationTime(timeId);
         Theme theme = findTheme(themeId);
         Reservation reservation = new Reservation(member, date, time, theme, LocalDateTime.now());
         return reservationRepository.insert(reservation);
-    }
-
-    private Member findMember(Long memberId) {
-        return memberRepository.findById(memberId)
-                .orElseThrow(() -> new NotFoundException("존재하지 않는 사용자입니다. 사용자를 확인해주세요."));
     }
 
     private void validateDuplicateReservation(LocalDate date, Long timeId, Long themeId) {
