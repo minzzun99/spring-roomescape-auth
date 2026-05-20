@@ -9,7 +9,7 @@ import roomescape.domain.Member;
 import roomescape.domain.Reservation;
 import roomescape.domain.ReservationTime;
 import roomescape.domain.Theme;
-import roomescape.exception.AuthenticationException;
+import roomescape.exception.AuthorizationException;
 import roomescape.exception.ConflictException;
 import roomescape.exception.NotFoundException;
 import roomescape.repository.ReservationRepository;
@@ -59,10 +59,11 @@ public class ReservationService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(Member member, Long id) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 예약입니다. 예약을 확인해주세요."));
 
+        validateSameMember(reservation, member, "본인의 예약만 삭제할 수 있습니다.");
         Long cancelId = reservation.getCancelId(LocalDateTime.now());
         reservationRepository.delete(cancelId);
     }
@@ -78,22 +79,22 @@ public class ReservationService {
     }
 
     @Transactional
-    public Reservation update(Member member, LocalDate date, Long timeId) {
-        Reservation nowReservation = reservationRepository.findById(member.getId())
+    public Reservation update(Member member, Long id, LocalDate date, Long timeId) {
+        Reservation nowReservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 예약입니다. 예약을 확인해주세요."));
 
-        validateSameMember(nowReservation, member);
+        validateSameMember(nowReservation, member, "본인의 예약만 수정할 수 있습니다.");
         ReservationTime updateTime = findReservationTime(timeId);
         validateDuplicateReservation(date, timeId, nowReservation.getTheme().getId());
 
         Reservation updateReservation = nowReservation.update(date, updateTime, LocalDateTime.now());
-        reservationRepository.updateByDateAndTime(member.getId(), date, timeId);
+        reservationRepository.updateByDateAndTime(id, date, timeId);
         return updateReservation;
     }
 
-    private void validateSameMember(Reservation reservation, Member member) {
+    private void validateSameMember(Reservation reservation, Member member, String message) {
         if (!reservation.isSameMember(member)) {
-            throw new AuthenticationException("본인의 예약만 수정할 수 있습니다.");
+            throw new AuthorizationException(message);
         }
     }
 }
