@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TokenProvider {
 
-    private static final String SECRET_KEY = "roomescape-secret-key123456789";
+    private static final String SECRET_KEY = "roomescape-secret-key-secret-key-secret-key-secret-key";
     private static final long EXPIRATION_TIME = 1000L * 60 * 60;        // 1시간
 
     private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
@@ -36,6 +36,7 @@ public class TokenProvider {
                 .parseClaimsJws(token)
                 .getBody();
 
-        return claims.get("memberId", Long.class);
+        Number memberId = claims.get("memberId", Number.class);
+        return memberId.longValue();
     }
 }

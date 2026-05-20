@@ -34,7 +34,7 @@ public class MissionStepTest {
         jdbcTemplate.update("ALTER TABLE reservation ALTER COLUMN id RESTART WITH 1;");
     }
 
-    private Map<String, String> loginSuccess() {
+    private String loginSuccess() {
         Map<String, String> login = new HashMap<>();
         login.put("email", "brown@email.com");
         login.put("password", "password");
@@ -44,13 +44,19 @@ public class MissionStepTest {
                 .body(login)
                 .when().post("/login")
                 .then().statusCode(200)
-                .extract().cookies();
+                .extract()
+                .jsonPath()
+                .getString("accessToken");
+    }
+
+    private String authorizationHeader() {
+        return "Bearer " + loginSuccess();
     }
 
     @Test
     void 예약_조회() {
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .when().get("/reservations")
                 .then().log().all()
@@ -67,7 +73,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -76,7 +82,7 @@ public class MissionStepTest {
                 .body("id", is(1));
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .when().get("/reservations")
                 .then().log().all()
@@ -84,14 +90,14 @@ public class MissionStepTest {
                 .body("size()", is(1));
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .when().delete("/reservations/1")
                 .then().log().all()
                 .statusCode(204);
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .when().get("/reservations")
                 .then().log().all()
@@ -116,7 +122,7 @@ public class MissionStepTest {
                 "2023-08-05", 1, 1);
 
         int size = RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .when().get("/reservations")
                 .then().log().all()
@@ -137,7 +143,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -148,7 +154,7 @@ public class MissionStepTest {
         assertThat(count).isEqualTo(1);
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .when().delete("/reservations/1")
                 .then().log().all()
@@ -193,7 +199,7 @@ public class MissionStepTest {
         reservation.put("themeId", 1);
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(reservation)
                 .when().post("/reservations")
@@ -201,7 +207,7 @@ public class MissionStepTest {
                 .statusCode(201);
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .when().get("/reservations")
                 .then().log().all()
@@ -218,7 +224,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -232,7 +238,7 @@ public class MissionStepTest {
         params.put("themeId", "2");
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().patch("/reservations/1")
@@ -305,7 +311,7 @@ public class MissionStepTest {
                 .statusCode(200);
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .when().get("/admin")
                 .then().log().all()
                 .statusCode(200);
@@ -344,7 +350,7 @@ public class MissionStepTest {
         );
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .when().get("/reservations/me")
                 .then().log().all()
                 .statusCode(200)
@@ -369,7 +375,7 @@ public class MissionStepTest {
         reservation.put("themeId", 1);
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(reservation)
                 .when().post("/reservations")
@@ -386,7 +392,7 @@ public class MissionStepTest {
         reservation.put("themeId", 1);
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(reservation)
                 .when().post("/reservations")
@@ -403,7 +409,7 @@ public class MissionStepTest {
         reservation.put("themeId", null);
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(reservation)
                 .when().post("/reservations")
@@ -414,7 +420,7 @@ public class MissionStepTest {
     @Test
     void 존재하지_않는_예약_삭제_시_404_에러_발생() {
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .when().delete("/reservations/999")
                 .then().log().all()
@@ -430,14 +436,14 @@ public class MissionStepTest {
         params.put("themeId", 1);
 
         RestAssured.given()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
                 .then().statusCode(201);
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -454,7 +460,7 @@ public class MissionStepTest {
         params.put("themeId", 1);
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -471,7 +477,7 @@ public class MissionStepTest {
         params.put("themeId", 999);
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -488,7 +494,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -505,7 +511,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -522,7 +528,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -530,7 +536,7 @@ public class MissionStepTest {
                 .statusCode(201);
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().delete("/times/1")
@@ -578,7 +584,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -586,7 +592,7 @@ public class MissionStepTest {
                 .statusCode(201);
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().delete("/themes/1")
@@ -641,7 +647,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().delete("/reservations/1")
@@ -662,7 +668,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().patch("/reservations/1")
@@ -683,7 +689,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().patch("/reservations/1")
@@ -713,7 +719,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
-                .cookies(loginSuccess())
+                .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().patch("/reservations/2")
