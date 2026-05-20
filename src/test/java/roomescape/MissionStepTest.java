@@ -35,8 +35,12 @@ public class MissionStepTest {
     }
 
     private String loginSuccess() {
+        return loginSuccess("brown@email.com");
+    }
+
+    private String loginSuccess(String email) {
         Map<String, String> login = new HashMap<>();
-        login.put("email", "brown@email.com");
+        login.put("email", email);
         login.put("password", "password");
 
         return RestAssured.given()
@@ -51,6 +55,10 @@ public class MissionStepTest {
 
     private String authorizationHeader() {
         return "Bearer " + loginSuccess();
+    }
+
+    private String authorizationHeader(String email) {
+        return "Bearer " + loginSuccess(email);
     }
 
     @Test
@@ -719,7 +727,7 @@ public class MissionStepTest {
         params.put("themeId", "1");
 
         RestAssured.given().log().all()
-                .header("Authorization", authorizationHeader())
+                .header("Authorization", authorizationHeader("jerry@email.com"))
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().patch("/reservations/2")
@@ -811,5 +819,50 @@ public class MissionStepTest {
                 .when().post("/login")
                 .then().log().all()
                 .statusCode(401);
+    }
+
+    @Test
+    void 인증_정보가_유효하지_않은_경우_401_에러_발생() {
+        RestAssured.given().log().all()
+                .header("Authorization", "fail")
+                .contentType(ContentType.JSON)
+                .when().post("/reservations")
+                .then().log().all()
+                .statusCode(401);
+    }
+
+    @Test
+    void 본인_예약이_아닌_예약_삭제_시_403_에러_발생() {
+        jdbcTemplate.update(
+                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
+                1, "2099-08-05", 1, 1
+        );
+
+        RestAssured.given().log().all()
+                .header("Authorization", authorizationHeader("jerry@email.com"))
+                .contentType(ContentType.JSON)
+                .when().delete("/reservations/1")
+                .then().log().all()
+                .statusCode(403);
+    }
+
+    @Test
+    void 본인_예약이_아닌_예약_변경_시_403_에러_발생() {
+        jdbcTemplate.update(
+                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
+                1, "2099-08-05", 1, 1
+        );
+
+        Map<String, String> params = new HashMap<>();
+        params.put("date", "2099-08-06");
+        params.put("timeId", "2");
+
+        RestAssured.given().log().all()
+                .header("Authorization", authorizationHeader("jerry@email.com"))
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().patch("/reservations/1")
+                .then().log().all()
+                .statusCode(403);
     }
 }

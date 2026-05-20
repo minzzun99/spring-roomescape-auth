@@ -27,7 +27,7 @@ class ReservationServiceTest {
     private JdbcTemplate jdbcTemplate;
     private ReservationService reservationService;
 
-    private LocalDate date = LocalDate.parse("2099-08-05");
+    private final LocalDate date = LocalDate.parse("2099-08-05");
     private Member brown;
     private Member jerry;
 
@@ -92,7 +92,7 @@ class ReservationServiceTest {
         Reservation created = reservationService.create(brown, date, 1L, 1L);
 
         // when
-        reservationService.delete(created.getId());
+        reservationService.delete(brown, created.getId());
 
         // then
         assertThat(reservationService.findAll(null)).isEmpty();
@@ -117,7 +117,7 @@ class ReservationServiceTest {
     @Test
     void 존재하지않는_id의_예약_삭제_시_예외_발생() {
         // when & then
-        assertThatThrownBy(() -> reservationService.delete(999L))
+        assertThatThrownBy(() -> reservationService.delete(brown, 999L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("존재하지 않는 예약입니다. 예약을 확인해주세요.");
     }
