@@ -12,12 +12,12 @@ import roomescape.domain.Member;
 import roomescape.service.LoginService;
 
 @RestController
-public class LoginController {
+public class AuthController {
 
     private final TokenProvider tokenProvider;
     private final LoginService loginService;
 
-    public LoginController(TokenProvider tokenProvider, LoginService loginService) {
+    public AuthController(TokenProvider tokenProvider, LoginService loginService) {
         this.tokenProvider = tokenProvider;
         this.loginService = loginService;
     }
@@ -28,4 +28,9 @@ public class LoginController {
         String accessToken = tokenProvider.createToken(member.getId());
         return ResponseEntity.ok(new LoginResponse(accessToken));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+
+    )
 }

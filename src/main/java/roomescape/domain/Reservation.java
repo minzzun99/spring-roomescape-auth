@@ -64,6 +64,10 @@ public class Reservation {
         return this.id;
     }
 
+    public boolean isSameMember(Member member) {
+        return this.member.isSameId(member);
+    }
+
     private void validateCancelable(LocalDateTime now) {
         LocalDateTime reservationDateTime = LocalDateTime.of(this.date, this.time.getStartAt());
         if (isPast(reservationDateTime, now)) {

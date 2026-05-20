@@ -69,4 +69,8 @@ public class Member {
     public String getPassword() {
         return password;
     }
+
+    public boolean isSameId(Member member) {
+        return this.id != null && this.id.equals(member.id);
+    }
 }

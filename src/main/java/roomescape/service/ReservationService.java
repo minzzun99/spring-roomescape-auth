@@ -9,6 +9,7 @@ import roomescape.domain.Member;
 import roomescape.domain.Reservation;
 import roomescape.domain.ReservationTime;
 import roomescape.domain.Theme;
+import roomescape.exception.AuthenticationException;
 import roomescape.exception.ConflictException;
 import roomescape.exception.NotFoundException;
 import roomescape.repository.ReservationRepository;
@@ -77,15 +78,22 @@ public class ReservationService {
     }
 
     @Transactional
-    public Reservation update(Long id, LocalDate date, Long timeId) {
-        Reservation nowReservation = reservationRepository.findById(id)
+    public Reservation update(Member member, LocalDate date, Long timeId) {
+        Reservation nowReservation = reservationRepository.findById(member.getId())
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 예약입니다. 예약을 확인해주세요."));
 
+        validateSameMember(nowReservation, member);
         ReservationTime updateTime = findReservationTime(timeId);
         validateDuplicateReservation(date, timeId, nowReservation.getTheme().getId());
 
         Reservation updateReservation = nowReservation.update(date, updateTime, LocalDateTime.now());
-        reservationRepository.updateByDateAndTime(id, date, timeId);
+        reservationRepository.updateByDateAndTime(member.getId(), date, timeId);
         return updateReservation;
+    }
+
+    private void validateSameMember(Reservation reservation, Member member) {
+        if (!reservation.isSameMember(member)) {
+            throw new AuthenticationException("본인의 예약만 수정할 수 있습니다.");
+        }
     }
 }
