@@ -576,7 +576,7 @@
     <div class="page-header">
         <p class="page-eyebrow">My Reservations</p>
         <h1 class="page-title">내 <em>예약</em> 조회</h1>
-        <p class="page-desc">예약자 이름으로 검색하여 예약을 조회하고 변경하거나 취소할 수 있습니다.</p>
+        <p class="page-desc">로그인한 사용자 기준으로 예약을 조회하고 변경하거나 취소할 수 있습니다.</p>
     </div>
 
     <div class="search-section">
@@ -585,10 +585,11 @@
                     class="search-input"
                     type="text"
                     id="search-name"
-                    placeholder="예약자 이름을 입력하세요"
+                    placeholder="로그인한 사용자의 예약을 조회합니다"
+                    readonly
                     onkeydown="if(event.key==='Enter') searchReservations()"
             >
-            <button class="search-btn" onclick="searchReservations()">조회하기</button>
+            <button class="search-btn" onclick="searchReservations()">내 예약 조회</button>
         </div>
     </div>
 
@@ -600,7 +601,7 @@
         <div id="result-container">
             <div class="initial-state">
                 <div class="initial-icon">?</div>
-                <p class="initial-desc">이름을 입력하고 예약을 조회해보세요</p>
+                <p class="initial-desc">로그인 후 내 예약을 조회해보세요</p>
             </div>
         </div>
     </div>
@@ -653,7 +654,19 @@
 
     // ── 공통 API ──────────────────────────────────────
     async function api(method, url, body) {
-        const options = { method, headers: { 'Content-Type': 'application/json' } };
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+            window.location.href = '/login?redirect=/my-reservation';
+            throw { status: 401, message: '로그인이 필요합니다.' };
+        }
+
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            }
+        };
         if (body) options.body = JSON.stringify(body);
         const res = await fetch(url, options);
 
@@ -695,23 +708,20 @@
 
     // ── 예약 조회 ─────────────────────────────────────
     async function searchReservations() {
-        const name = document.getElementById('search-name').value.trim();
-        if (!name) return showErrorAlert({ status: 400, message: '이름을 입력해주세요.' });
-
         const container = document.getElementById('result-container');
         container.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
         document.getElementById('result-header').style.display = 'none';
 
         try {
-            const data = await api('GET', `/reservations?name=${encodeURIComponent(name)}`);
-            renderReservations(data, name);
+            const data = await api('GET', '/reservations/me');
+            renderReservations(data);
         } catch (error) {
             showErrorAlert(error);
             container.innerHTML = '';
         }
     }
 
-    function renderReservations(reservations, name) {
+    function renderReservations(reservations) {
         const container = document.getElementById('result-container');
         const header = document.getElementById('result-header');
         const countEl = document.getElementById('result-count');
@@ -723,7 +733,7 @@
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">📭</div>
-                    <div class="empty-title">${name}님의 예약이 없습니다</div>
+                    <div class="empty-title">예약이 없습니다</div>
                     <p class="empty-desc">예약 후 다시 조회해보세요</p>
                 </div>
             `;
@@ -784,7 +794,6 @@
         try {
             await api('DELETE', `/reservations/${id}`);
             showToast('예약이 취소되었습니다.', 'success');
-            const name = document.getElementById('search-name').value.trim();
             searchReservations();
         } catch (error) {
             showErrorAlert(error);

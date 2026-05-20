@@ -694,7 +694,7 @@
         <li><a href="#booking" class="nav-link">예약하기</a></li>
         <li><a href="#popular" class="nav-link">인기 테마</a></li>
         <li><a href="/my-reservation">내 예약</a></li>
-        <li><a href="/login">로그인</a></li>
+        <li><a href="/login" id="nav-auth-link">로그인</a></li>
     </ul>
     <a href="/reservation" class="nav-reserve">예약하기</a>
 </nav>
@@ -712,7 +712,7 @@
         <a href="/reservation" class="btn-primary">지금 예약하기</a>
         <a href="#themes" class="btn-ghost">테마 둘러보기</a>
         <a href="/my-reservation" class="btn-ghost">내 예약 보기</a>
-        <a href="/login" class="btn-ghost">로그인</a>
+        <a href="/login" class="btn-ghost" id="hero-auth-link">로그인</a>
     </div>
     <div class="hero-scroll">
         <div class="scroll-line"></div>
@@ -841,6 +841,31 @@
     }, { threshold: 0.1 });
 
     document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    function logout() {
+        localStorage.removeItem('accessToken');
+        window.location.href = '/';
+    }
+
+    function updateAuthLinks() {
+        const isLoggedIn = !!localStorage.getItem('accessToken');
+        const links = [
+            document.getElementById('nav-auth-link'),
+            document.getElementById('hero-auth-link')
+        ];
+
+        links.forEach(link => {
+            if (!link) return;
+            link.textContent = isLoggedIn ? '로그아웃' : '로그인';
+            link.href = isLoggedIn ? '#' : '/login';
+            link.onclick = isLoggedIn ? (event) => {
+                event.preventDefault();
+                logout();
+            } : null;
+        });
+    }
+
+    updateAuthLinks();
 
     const emojis = ['👻', '🚀', '🧙‍♂️', '🔍', '🏴‍☠️', '🎭', '🕵️', '⚗️'];
     const difficulties = ['입문', '보통', '어려움', '매우 어려움'];

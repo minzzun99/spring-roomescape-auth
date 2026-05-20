@@ -370,6 +370,9 @@
                 throw new Error(errorMessage);
             }
 
+            const data = await response.json();
+            localStorage.setItem('accessToken', data.accessToken);
+
             message.classList.add('success');
             message.textContent = '로그인되었습니다.';
             window.location.href = getRedirectPath();

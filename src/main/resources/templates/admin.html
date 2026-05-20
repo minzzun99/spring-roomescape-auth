@@ -583,7 +583,19 @@
 
     // ── 공통 API 호출 ──────────────────────────────────
     async function api(method, url, body) {
-        const options = { method, headers: { 'Content-Type': 'application/json' } };
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+            window.location.href = '/login?redirect=/admin';
+            throw { status: 401, message: '로그인이 필요합니다.' };
+        }
+
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            }
+        };
         if (body) options.body = JSON.stringify(body);
         const res = await fetch(url, options);
 
