@@ -12,16 +12,18 @@ import roomescape.exception.AuthenticationException;
 import roomescape.repository.MemberRepository;
 
 public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolver {
-    private static final String BEARER_PREFIX = "Bearer ";
-    private static final String AUTHORIZATION = "Authorization";
+
     private static final String REQUIRED_LOGIN = "로그인이 필요합니다. 로그인 후 다시 시도해주세요.";
 
     private final MemberRepository memberRepository;
     private final TokenProvider tokenProvider;
+    private final TokenExtractor tokenExtractor;
 
-    public LoginMemberArgumentResolver(MemberRepository memberRepository, TokenProvider tokenProvider) {
+    public LoginMemberArgumentResolver(MemberRepository memberRepository, TokenProvider tokenProvider,
+                                       TokenExtractor tokenExtractor) {
         this.memberRepository = memberRepository;
         this.tokenProvider = tokenProvider;
+        this.tokenExtractor = tokenExtractor;
     }
 
     @Override
@@ -36,13 +38,11 @@ public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolve
                                   NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) {
 
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
-        String authorization = request.getHeader(AUTHORIZATION);
-
-        if (authorization == null || !authorization.startsWith(BEARER_PREFIX)) {
-            throw new AuthenticationException("로그인이 필요합니다.");
+        if (request == null) {
+            throw new AuthenticationException(REQUIRED_LOGIN);
         }
 
-        String token = authorization.substring(BEARER_PREFIX.length());
+        String token = tokenExtractor.extract(request);
         Long memberId;
         try {
             memberId = tokenProvider.extractMemberId(token);
