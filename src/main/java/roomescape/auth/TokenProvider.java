@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TokenProvider {
+
     private static final String SECRET_KEY = "roomescape-secret-key123456789";
     private static final long EXPIRATION_TIME = 1000L * 60 * 60;        // 1시간
 
