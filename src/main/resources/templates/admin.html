@@ -557,6 +557,8 @@
 <script>
     // ── ERROR MODAL 제어 ──────────────────────────────
     function showErrorAlert(errorResponse) {
+        if (errorResponse.redirected) return;
+
         const statusEl = document.getElementById('error-status');
         const messageEl = document.getElementById('error-message');
         const modalEl = document.getElementById('error-modal');
@@ -600,6 +602,12 @@
         const res = await fetch(url, options);
 
         if (!res.ok) {
+            if (res.status === 401) {
+                localStorage.removeItem('accessToken');
+                window.location.href = '/login?redirect=/admin';
+                throw { redirected: true };
+            }
+
             // 백엔드에서 내려주는 ErrorResponse 파싱 시도 (실패 시 기본 에러 객체 생성)
             const errorData = await res.json().catch(() => ({
                 status: res.status,

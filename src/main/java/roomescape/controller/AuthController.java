@@ -28,9 +28,4 @@ public class AuthController {
         String accessToken = tokenProvider.createToken(member.getId());
         return ResponseEntity.ok(new LoginResponse(accessToken));
     }
-
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(
-
-    )
 }

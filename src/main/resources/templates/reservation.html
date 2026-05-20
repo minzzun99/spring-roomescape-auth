@@ -604,7 +604,6 @@
         </div>
         <div class="booking-form">
             <div class="booking-summary" id="booking-summary"></div>
-            <input type="text" id="user-name" placeholder="예약자 성함을 입력하세요">
             <button class="btn-reserve" onclick="makeReservation()" id="btn-reserve">예약하기</button>
         </div>
     </div>
@@ -643,6 +642,8 @@
 <script>
     // ── MODAL 제어 ────────────────────────────────────
     function showErrorAlert(errorResponse) {
+        if (errorResponse.redirected) return;
+
         const statusEl = document.getElementById('error-status');
         const messageEl = document.getElementById('error-message');
         const modalEl = document.getElementById('error-modal');
@@ -830,7 +831,6 @@
     }
 
     function makeReservation() {
-        const name = document.getElementById('user-name').value.trim();
         const accessToken = localStorage.getItem('accessToken');
 
         if (!accessToken) {
@@ -845,8 +845,7 @@
         const body = {
             themeId: parseInt(selectedThemeId),
             date: dateSelect.value,
-            timeId: selectedTimeId,
-            name: name
+            timeId: selectedTimeId
         };
 
         fetch('/reservations', {
@@ -859,6 +858,12 @@
         })
             .then(async (res) => {
                 if (!res.ok) {
+                    if (res.status === 401) {
+                        localStorage.removeItem('accessToken');
+                        window.location.href = '/login?redirect=/reservation';
+                        throw { redirected: true };
+                    }
+
                     const errorData = await res.json().catch(() => ({
                         status: res.status,
                         message: '예약을 처리하는 도중 서버 오류가 발생했습니다.'
@@ -872,6 +877,7 @@
                 });
             })
             .catch((error) => {
+                if (error.redirected) return;
                 showErrorAlert(error);
                 btn.disabled = false;
                 btn.textContent = '예약하기';

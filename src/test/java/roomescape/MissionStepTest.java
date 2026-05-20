@@ -75,7 +75,6 @@ public class MissionStepTest {
     @Test
     void 예약_추가_및_삭제() {
         Map<String, String> params = new HashMap<>();
-        params.put("name", "브라운");
         params.put("date", "2099-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
@@ -145,7 +144,6 @@ public class MissionStepTest {
     @Test
     void DB_추가_삭제_API_전환() {
         Map<String, String> params = new HashMap<>();
-        params.put("name", "브라운");
         params.put("date", "2099-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
@@ -201,7 +199,6 @@ public class MissionStepTest {
     @Test
     void 예약과_시간_연결() {
         Map<String, Object> reservation = new HashMap<>();
-        reservation.put("name", "브라운");
         reservation.put("date", "2099-08-05");
         reservation.put("timeId", 1);
         reservation.put("themeId", 1);
@@ -226,7 +223,6 @@ public class MissionStepTest {
     @Test
     void 예약변경_테스트() {
         Map<String, String> params = new HashMap<>();
-        params.put("name", "브라운");
         params.put("date", "2030-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
@@ -240,7 +236,6 @@ public class MissionStepTest {
                 .statusCode(201);
 
         params = new HashMap<>();
-        params.put("name", "브라운");
         params.put("date", "2030-08-06");
         params.put("timeId", "3");
         params.put("themeId", "2");
@@ -377,7 +372,6 @@ public class MissionStepTest {
     @Test
     void 날짜가_Null인_경우_400_에러_발생() {
         Map<String, Object> reservation = new HashMap<>();
-        reservation.put("name", "브라운");
         reservation.put("date", null);
         reservation.put("timeId", 1);
         reservation.put("themeId", 1);
@@ -394,7 +388,6 @@ public class MissionStepTest {
     @Test
     void timeId가_Null인_경우_400_에러_발생() {
         Map<String, Object> reservation = new HashMap<>();
-        reservation.put("name", "브라운");
         reservation.put("date", "2023-08-05");
         reservation.put("timeId", null);
         reservation.put("themeId", 1);
@@ -411,7 +404,6 @@ public class MissionStepTest {
     @Test
     void themeId가_Null인_경우_400_에러_발생() {
         Map<String, Object> reservation = new HashMap<>();
-        reservation.put("name", "브라운");
         reservation.put("date", "2023-08-05");
         reservation.put("timeId", 1);
         reservation.put("themeId", null);
@@ -438,7 +430,6 @@ public class MissionStepTest {
     @Test
     void 중복_예약_시_409_에러_발생() {
         Map<String, Object> params = new HashMap<>();
-        params.put("name", "브라운");
         params.put("date", "2099-08-05");
         params.put("timeId", 1);
         params.put("themeId", 1);
@@ -462,7 +453,6 @@ public class MissionStepTest {
     @Test
     void 존재하지_않는_timeId로_예약_시_404_에러_발생() {
         Map<String, Object> params = new HashMap<>();
-        params.put("name", "브라운");
         params.put("date", "2099-08-05");
         params.put("timeId", 999);
         params.put("themeId", 1);
@@ -479,7 +469,6 @@ public class MissionStepTest {
     @Test
     void 존재하지_않는_themeId로_예약_시_404_에러_발생() {
         Map<String, Object> params = new HashMap<>();
-        params.put("name", "브라운");
         params.put("date", "2099-08-05");
         params.put("timeId", 1);
         params.put("themeId", 999);
@@ -496,7 +485,6 @@ public class MissionStepTest {
     @Test
     void 지난_시간으로의_예약_시_422_에러_발생() {
         Map<String, String> params = new HashMap<>();
-        params.put("name", "브라운");
         params.put("date", "2000-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
@@ -513,7 +501,6 @@ public class MissionStepTest {
     @Test
     void 날짜_형식_오류_400_에러_발생() {
         Map<String, String> params = new HashMap<>();
-        params.put("name", "브라운");
         params.put("date", "2099-081-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
@@ -530,7 +517,6 @@ public class MissionStepTest {
     @Test
     void 예약이_존재하는_시간_삭제_시_409_에러_발생() {
         Map<String, String> params = new HashMap<>();
-        params.put("name", "브라운");
         params.put("date", "2099-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
@@ -586,7 +572,6 @@ public class MissionStepTest {
     @Test
     void 예약이_존재하는_테마_삭제_시_409_에러_발생() {
         Map<String, String> params = new HashMap<>();
-        params.put("name", "브라운");
         params.put("date", "2099-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
@@ -649,7 +634,6 @@ public class MissionStepTest {
         );
 
         Map<String, String> params = new HashMap<>();
-        params.put("name", "브라운");
         params.put("date", "2025-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
@@ -670,7 +654,6 @@ public class MissionStepTest {
                 1, "2030-08-05", 1, 1
         );
         Map<String, String> params = new HashMap<>();
-        params.put("name", "브라운");
         params.put("date", "2000-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
@@ -691,7 +674,6 @@ public class MissionStepTest {
                 1, "2000-08-05", 1, 1
         );
         Map<String, String> params = new HashMap<>();
-        params.put("name", "브라운");
         params.put("date", "2099-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
@@ -721,7 +703,6 @@ public class MissionStepTest {
 
         // 3. 예약 변경 (1번 예약과 중복)
         Map<String, String> params = new HashMap<>();
-        params.put("name", "대길");
         params.put("date", "2030-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
@@ -780,7 +761,6 @@ public class MissionStepTest {
     @Test
     void 비로그인_예약_변경_시_401_에러_발생() {
         Map<String, String> params = new HashMap<>();
-        params.put("name", "대길");
         params.put("date", "2030-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
