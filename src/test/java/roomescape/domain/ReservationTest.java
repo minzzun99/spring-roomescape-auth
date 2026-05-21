@@ -15,6 +15,7 @@ class ReservationTest {
     private static final LocalDateTime PAST_DATE_TIME = LocalDateTime.of(2000, 1, 1, 0, 0);
     private static final LocalDateTime FUTURE_DATE_TIME = LocalDateTime.of(2099, 1, 1, 0, 0);
     private static final Member MEMBER = new Member(1L, "브라운", "brown@email.com", "password");
+    private static final Store STORE = new Store(1L, "판교점");
 
     @Test
     void 날짜_null로_예약_생성시_예외() {
@@ -23,7 +24,7 @@ class ReservationTest {
         Theme theme = new Theme("테마 이름", "테마 설명", "썸네일");
 
         // when & then
-        assertThatThrownBy(() -> new Reservation(MEMBER, null, time, theme, FUTURE_DATE_TIME))
+        assertThatThrownBy(() -> new Reservation(MEMBER, null, time, theme, STORE, FUTURE_DATE_TIME))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("날짜는 비어 있을 수 없습니다. 날짜를 입력해주세요.");
         ;
@@ -35,7 +36,7 @@ class ReservationTest {
         Theme theme = new Theme("테마 이름", "테마 설명", "썸네일");
 
         // when & then
-        assertThatThrownBy(() -> new Reservation(MEMBER, TEST_DATE, null, theme, FUTURE_DATE_TIME))
+        assertThatThrownBy(() -> new Reservation(MEMBER, TEST_DATE, null, theme, STORE, FUTURE_DATE_TIME))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("예약 시간은 비어있을 수 없습니다. 예약 시간을 선택해주세요.");
     }
@@ -46,7 +47,7 @@ class ReservationTest {
         ReservationTime time = new ReservationTime(1L, START_AT);
 
         // when & then
-        assertThatThrownBy(() -> new Reservation(MEMBER, TEST_DATE, time, null, FUTURE_DATE_TIME))
+        assertThatThrownBy(() -> new Reservation(MEMBER, TEST_DATE, time, null, STORE, FUTURE_DATE_TIME))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("테마는 비어있을 수 없습니다. 테마를 선택해주세요.");
     }
@@ -58,7 +59,7 @@ class ReservationTest {
         Theme theme = new Theme("테마 이름", "테마 설명", "썸네일");
 
         // when
-        Reservation result = new Reservation(MEMBER, TEST_DATE, time, theme, PAST_DATE_TIME);
+        Reservation result = new Reservation(MEMBER, TEST_DATE, time, theme, STORE, PAST_DATE_TIME);
 
         // then
         assertThat(result.getMember()).isEqualTo(MEMBER);
@@ -69,7 +70,7 @@ class ReservationTest {
         // given
         ReservationTime time = new ReservationTime(1L, START_AT);
         Theme theme = new Theme("테마 이름", "테마 설명", "썸네일");
-        Reservation before = new Reservation(1L, MEMBER, TEST_DATE, time, theme);
+        Reservation before = new Reservation(1L, MEMBER, TEST_DATE, time, theme, STORE);
 
         // when
         LocalDate updateDate = LocalDate.parse("2030-01-01");
@@ -87,7 +88,7 @@ class ReservationTest {
         // given
         ReservationTime time = new ReservationTime(1L, START_AT);
         Theme theme = new Theme("테마 이름", "테마 설명", "썸네일");
-        Reservation before = new Reservation(1L, MEMBER, LocalDate.from(FUTURE_DATE_TIME.minusDays(1L)), time, theme);
+        Reservation before = new Reservation(1L, MEMBER, LocalDate.from(FUTURE_DATE_TIME.minusDays(1L)), time, theme, STORE);
 
         // when
         LocalDate updateDate = LocalDate.from(FUTURE_DATE_TIME.plusDays(1L));
@@ -104,7 +105,7 @@ class ReservationTest {
         // given
         ReservationTime time = new ReservationTime(1L, START_AT);
         Theme theme = new Theme("테마 이름", "테마 설명", "썸네일");
-        Reservation before = new Reservation(1L, MEMBER, TEST_DATE, time, theme);
+        Reservation before = new Reservation(1L, MEMBER, TEST_DATE, time, theme, STORE);
 
         // when
         LocalDate updateDate = LocalDate.from(PAST_DATE_TIME.minusDays(1L));
@@ -121,7 +122,7 @@ class ReservationTest {
         // given
         ReservationTime time = new ReservationTime(1L, START_AT);
         Theme theme = new Theme("테마 이름", "테마 설명", "썸네일");
-        Reservation reservation = new Reservation(1L, MEMBER, LocalDate.from(PAST_DATE_TIME), time, theme);
+        Reservation reservation = new Reservation(1L, MEMBER, LocalDate.from(PAST_DATE_TIME), time, theme, STORE);
 
         // when & then
         assertThatThrownBy(() -> reservation.getCancelId(FUTURE_DATE_TIME))
@@ -136,7 +137,7 @@ class ReservationTest {
         Theme theme = new Theme("테마 이름", "테마 설명", "썸네일");
 
         // when & then
-        assertThatThrownBy(() -> new Reservation(MEMBER, LocalDate.from(PAST_DATE_TIME), time, theme, FUTURE_DATE_TIME))
+        assertThatThrownBy(() -> new Reservation(MEMBER, LocalDate.from(PAST_DATE_TIME), time, theme, STORE, FUTURE_DATE_TIME))
                 .isInstanceOf(UnprocessableException.class)
                 .hasMessage("지난 시간으로는 예약할 수 없습니다. 현재 이후의 시간으로 예약해주세요.");
 

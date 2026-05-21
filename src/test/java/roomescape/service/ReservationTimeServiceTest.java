@@ -118,8 +118,8 @@ class ReservationTimeServiceTest {
 
     private void createReservation(LocalDate date, Long timeId, Long themeId) {
         jdbcTemplate.update(
-                "INSERT INTO reservation(member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                1L, date, timeId, themeId
+                "INSERT INTO reservation(member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1L, 1L, date, timeId, themeId
         );
     }
 }

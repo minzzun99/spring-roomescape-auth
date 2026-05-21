@@ -18,6 +18,7 @@ import roomescape.exception.NotFoundException;
 import roomescape.repository.MemberRepository;
 import roomescape.repository.ReservationRepository;
 import roomescape.repository.ReservationTimeRepository;
+import roomescape.repository.StoreRepository;
 import roomescape.repository.ThemeRepository;
 
 @JdbcTest
@@ -39,9 +40,10 @@ class ReservationServiceTest {
         ReservationRepository reservationRepository = new ReservationRepository(jdbcTemplate);
         ReservationTimeRepository reservationTimeRepository = new ReservationTimeRepository(jdbcTemplate);
         ThemeRepository themeRepository = new ThemeRepository(jdbcTemplate);
+        StoreRepository storeRepository = new StoreRepository(jdbcTemplate);
         MemberRepository memberRepository = new MemberRepository(jdbcTemplate);
         this.reservationService = new ReservationService(reservationRepository, reservationTimeRepository,
-                themeRepository);
+                themeRepository, storeRepository);
         this.brown = memberRepository.findByEmail("brown@email.com").orElseThrow();
         this.jerry = memberRepository.findByEmail("jerry@email.com").orElseThrow();
     }
@@ -49,7 +51,7 @@ class ReservationServiceTest {
     @Test
     void 예약_생성_테스트() {
         // when
-        Reservation result = reservationService.create(brown, date, 1L, 1L);
+        Reservation result = reservationService.create(brown, date, 1L, 1L, 1L);
 
         // then
         assertAll(
@@ -62,8 +64,8 @@ class ReservationServiceTest {
     @Test
     void 전체_예약_조회_테스트() {
         // given
-        reservationService.create(brown, date, 1L, 1L);
-        reservationService.create(jerry, date, 2L, 1L);
+        reservationService.create(brown, date, 1L, 1L, 1L);
+        reservationService.create(jerry, date, 2L, 1L, 1L);
 
         // when
         List<Reservation> result = reservationService.findAll(null);
@@ -75,9 +77,9 @@ class ReservationServiceTest {
     @Test
     void 사용자_이름으로_예약_조회_테스트() {
         // given
-        reservationService.create(brown, date, 1L, 1L);
-        reservationService.create(brown, date, 2L, 1L);
-        reservationService.create(brown, date, 3L, 1L);
+        reservationService.create(brown, date, 1L, 1L, 1L);
+        reservationService.create(brown, date, 2L, 1L, 1L);
+        reservationService.create(brown, date, 3L, 1L, 1L);
 
         // when
         List<Reservation> result = reservationService.findAll("브라운");
@@ -89,7 +91,7 @@ class ReservationServiceTest {
     @Test
     void 예약_삭제_테스트() {
         // given
-        Reservation created = reservationService.create(brown, date, 1L, 1L);
+        Reservation created = reservationService.create(brown, date, 1L, 1L, 1L);
 
         // when
         reservationService.delete(brown, created.getId());
@@ -101,7 +103,7 @@ class ReservationServiceTest {
     @Test
     void 존재하지않는_timeId로_예약_생성_시_예외_발생() {
         // when & then
-        assertThatThrownBy(() -> reservationService.create(brown, date, 999L, 1L))
+        assertThatThrownBy(() -> reservationService.create(brown, date, 999L, 1L, 1L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("존재하지 않는 예약 시간입니다. 시간대를 확인해주세요.");
     }
@@ -109,7 +111,7 @@ class ReservationServiceTest {
     @Test
     void 존재하지않는_themeId로_예약_생성_시_예외_발생() {
         // when & then
-        assertThatThrownBy(() -> reservationService.create(brown, date, 1L, 999L))
+        assertThatThrownBy(() -> reservationService.create(brown, date, 1L, 999L, 1L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("존재하지 않는 테마입니다. 테마를 확인해주세요.");
     }
@@ -125,10 +127,10 @@ class ReservationServiceTest {
     @Test
     void 중복_예약_시_예외_발생() {
         // given
-        reservationService.create(brown, date, 1L, 1L);
+        reservationService.create(brown, date, 1L, 1L, 1L);
 
         // when & then
-        assertThatThrownBy(() -> reservationService.create(brown, date, 1L, 1L))
+        assertThatThrownBy(() -> reservationService.create(brown, date, 1L, 1L, 1L))
                 .isInstanceOf(ConflictException.class)
                 .hasMessage("이미 예약된 시간입니다. 다른 날짜 혹은 테마를 선택해주세요.");
     }

@@ -15,6 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import roomescape.domain.Member;
 import roomescape.domain.Reservation;
 import roomescape.domain.ReservationTime;
+import roomescape.domain.Store;
 import roomescape.domain.Theme;
 
 @JdbcTest
@@ -23,6 +24,7 @@ class ReservationRepositoryTest {
     private static final LocalDateTime TEST_DATE_TIME = LocalDateTime.of(2000, 1, 1, 0, 0);
     private static final Member TEST1 = new Member(1L, "테스트1", "test1@email.com", "password1");
     private static final Member TEST2 = new Member(2L, "테스트2", "test2@email.com", "password2");
+    private static final Store STORE = new Store(1L, "판교점");
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -42,7 +44,7 @@ class ReservationRepositoryTest {
         // given
         ReservationTime time = findTimeByStartAt("15:00");
         Theme theme = new Theme(1L, "테마 이름", "테마 설명", "썸네일");
-        Reservation reservation = new Reservation(TEST1, DATE, time, theme, TEST_DATE_TIME);
+        Reservation reservation = new Reservation(TEST1, DATE, time, theme, STORE, TEST_DATE_TIME);
 
         // when & then
         Reservation savedReservation = reservationRepository.insert(reservation);
@@ -63,8 +65,8 @@ class ReservationRepositoryTest {
         Theme theme1 = new Theme(1L, "테마 이름1", "테마 설명1", "썸네일1");
         ReservationTime time2 = findTimeByStartAt("12:00");
         Theme theme2 = new Theme(2L, "테마 이름2", "테마 설명2", "썸네일2");
-        Reservation reservation1 = new Reservation(TEST1, DATE, time1, theme1, TEST_DATE_TIME);
-        Reservation reservation2 = new Reservation(TEST2, DATE, time2, theme2, TEST_DATE_TIME);
+        Reservation reservation1 = new Reservation(TEST1, DATE, time1, theme1, STORE, TEST_DATE_TIME);
+        Reservation reservation2 = new Reservation(TEST2, DATE, time2, theme2, STORE, TEST_DATE_TIME);
         Long id1 = reservationRepository.insert(reservation1).getId();
         Long id2 = reservationRepository.insert(reservation2).getId();
 

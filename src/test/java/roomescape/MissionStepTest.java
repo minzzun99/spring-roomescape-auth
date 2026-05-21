@@ -78,6 +78,7 @@ public class MissionStepTest {
         params.put("date", "2099-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -125,7 +126,7 @@ public class MissionStepTest {
 
     @Test
     void DB_조회_API_전환() {
-        jdbcTemplate.update("INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)", 1,
+        jdbcTemplate.update("INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)", 1, 1,
                 "2023-08-05", 1, 1);
 
         int size = RestAssured.given().log().all()
@@ -147,6 +148,7 @@ public class MissionStepTest {
         params.put("date", "2099-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -202,6 +204,7 @@ public class MissionStepTest {
         reservation.put("date", "2099-08-05");
         reservation.put("timeId", 1);
         reservation.put("themeId", 1);
+        reservation.put("storeId", 1);
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -226,6 +229,7 @@ public class MissionStepTest {
         params.put("date", "2030-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -239,6 +243,7 @@ public class MissionStepTest {
         params.put("date", "2030-08-06");
         params.put("timeId", "3");
         params.put("themeId", "2");
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -332,6 +337,7 @@ public class MissionStepTest {
         reservation.put("date", "2099-08-05");
         reservation.put("timeId", 1);
         reservation.put("themeId", 1);
+        reservation.put("storeId", 1);
 
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
@@ -344,12 +350,12 @@ public class MissionStepTest {
     @Test
     void 로그인_사용자_예약_조회() {
         jdbcTemplate.update(
-                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                1, "2099-08-05", 1, 1
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1, 1, "2099-08-05", 1, 1
         );
         jdbcTemplate.update(
-                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                2, "2099-08-05", 2, 1
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                2, 1, "2099-08-05", 2, 1
         );
 
         RestAssured.given().log().all()
@@ -375,6 +381,7 @@ public class MissionStepTest {
         reservation.put("date", null);
         reservation.put("timeId", 1);
         reservation.put("themeId", 1);
+        reservation.put("storeId", 1);
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -391,6 +398,7 @@ public class MissionStepTest {
         reservation.put("date", "2023-08-05");
         reservation.put("timeId", null);
         reservation.put("themeId", 1);
+        reservation.put("storeId", 1);
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -407,6 +415,7 @@ public class MissionStepTest {
         reservation.put("date", "2023-08-05");
         reservation.put("timeId", 1);
         reservation.put("themeId", null);
+        reservation.put("storeId", 1);
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -433,6 +442,7 @@ public class MissionStepTest {
         params.put("date", "2099-08-05");
         params.put("timeId", 1);
         params.put("themeId", 1);
+        params.put("storeId", "1");
 
         RestAssured.given()
                 .header("Authorization", authorizationHeader())
@@ -456,6 +466,7 @@ public class MissionStepTest {
         params.put("date", "2099-08-05");
         params.put("timeId", 999);
         params.put("themeId", 1);
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -472,6 +483,7 @@ public class MissionStepTest {
         params.put("date", "2099-08-05");
         params.put("timeId", 1);
         params.put("themeId", 999);
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -488,6 +500,7 @@ public class MissionStepTest {
         params.put("date", "2000-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -504,6 +517,7 @@ public class MissionStepTest {
         params.put("date", "2099-081-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -520,6 +534,7 @@ public class MissionStepTest {
         params.put("date", "2099-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -575,6 +590,7 @@ public class MissionStepTest {
         params.put("date", "2099-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -629,14 +645,15 @@ public class MissionStepTest {
     @Test
     void 지난_날짜의_예약_삭제_시_422_에러_발생() {
         jdbcTemplate.update(
-                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                1, "2020-08-05", 1, 1
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1, 1, "2020-08-05", 1, 1
         );
 
         Map<String, String> params = new HashMap<>();
         params.put("date", "2025-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -650,13 +667,14 @@ public class MissionStepTest {
     @Test
     void 지난_시간으로의_예약변경_시_422_에러_발생() {
         jdbcTemplate.update(
-                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                1, "2030-08-05", 1, 1
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1, 1, "2030-08-05", 1, 1
         );
         Map<String, String> params = new HashMap<>();
         params.put("date", "2000-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -670,13 +688,14 @@ public class MissionStepTest {
     @Test
     void 지난_날짜의_예약_변경_요청_시_422_에러_발생() {
         jdbcTemplate.update(
-                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                1, "2000-08-05", 1, 1
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1, 1, "2000-08-05", 1, 1
         );
         Map<String, String> params = new HashMap<>();
         params.put("date", "2099-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
@@ -691,14 +710,14 @@ public class MissionStepTest {
     void 변경하려는_시간이_이미_예약되어있는_경우_409_에러_발생() {
         // 1. 기존 예약
         jdbcTemplate.update(
-                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                1, "2030-08-05", 1, 1
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1, 1, "2030-08-05", 1, 1
         );
 
         // 2. 변경할 기존 예약
         jdbcTemplate.update(
-                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                2, "2030-08-05", 2, 1
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                2, 1, "2030-08-05", 2, 1
         );
 
         // 3. 예약 변경 (1번 예약과 중복)
@@ -706,6 +725,7 @@ public class MissionStepTest {
         params.put("date", "2030-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader("jerry@email.com"))
@@ -722,6 +742,7 @@ public class MissionStepTest {
         reservation.put("date", "2099-08-05");
         reservation.put("timeId", 1);
         reservation.put("themeId", 1);
+        reservation.put("storeId", 1);
 
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
@@ -764,6 +785,7 @@ public class MissionStepTest {
         params.put("date", "2030-08-05");
         params.put("timeId", "1");
         params.put("themeId", "1");
+        params.put("storeId", "1");
 
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
@@ -814,8 +836,8 @@ public class MissionStepTest {
     @Test
     void 본인_예약이_아닌_예약_삭제_시_403_에러_발생() {
         jdbcTemplate.update(
-                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                1, "2099-08-05", 1, 1
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1, 1, "2099-08-05", 1, 1
         );
 
         RestAssured.given().log().all()
@@ -829,8 +851,8 @@ public class MissionStepTest {
     @Test
     void 본인_예약이_아닌_예약_변경_시_403_에러_발생() {
         jdbcTemplate.update(
-                "INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?)",
-                1, "2099-08-05", 1, 1
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1, 1, "2099-08-05", 1, 1
         );
 
         Map<String, String> params = new HashMap<>();
