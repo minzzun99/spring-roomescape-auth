@@ -13,10 +13,8 @@ import roomescape.domain.Theme;
 import roomescape.exception.AuthorizationException;
 import roomescape.exception.ConflictException;
 import roomescape.exception.NotFoundException;
-import roomescape.repository.MemberRepository;
 import roomescape.repository.ReservationRepository;
 import roomescape.repository.ReservationTimeRepository;
-import roomescape.repository.StoreManagerRepository;
 import roomescape.repository.StoreRepository;
 import roomescape.repository.ThemeRepository;
 
@@ -28,22 +26,16 @@ public class ReservationService {
     private final ReservationTimeRepository reservationTimeRepository;
     private final ThemeRepository themeRepository;
     private final StoreRepository storeRepository;
-    private final MemberRepository memberRepository;
-    private final StoreManagerRepository storeManagerRepository;
 
     public ReservationService(ReservationRepository reservationRepository,
                               ReservationTimeRepository reservationTimeRepository,
                               ThemeRepository themeRepository,
-                              StoreRepository storeRepository,
-                              MemberRepository memberRepository,
-                              StoreManagerRepository storeManagerRepository) {
+                              StoreRepository storeRepository) {
 
         this.reservationRepository = reservationRepository;
         this.reservationTimeRepository = reservationTimeRepository;
         this.themeRepository = themeRepository;
         this.storeRepository = storeRepository;
-        this.memberRepository = memberRepository;
-        this.storeManagerRepository = storeManagerRepository;
     }
 
     @Transactional
@@ -107,67 +99,7 @@ public class ReservationService {
         }
     }
 
-    public List<Reservation> findAllByManager(String name, Member manager) {
-        Long storeId = storeManagerRepository.findStoreIdByMemberId(manager.getId())
-                .orElseThrow(() -> new AuthorizationException("관리하는 매장이 없습니다. 관리자를 확인해주세요."));
-
-        if (name != null) {
-            return reservationRepository.findByStoreIdAndName(storeId, name);
-        }
-        return reservationRepository.findByStoreId(storeId);
-    }
-
     public List<Reservation> findByMember(Member member) {
         return reservationRepository.findByMemberId(member.getId());
-    }
-
-    @Transactional
-    public Reservation createByManager(Member manager, Long memberId, LocalDate date, Long timeId, Long themeId, Long storeId) {
-        validateManagedStore(manager, storeId);
-
-        validateDuplicateReservation(date, timeId, themeId, storeId);
-
-        Member member = findMember(memberId);
-        ReservationTime time = findReservationTime(timeId);
-        Theme theme = findTheme(themeId);
-        Store store = findStore(storeId);
-
-        Reservation reservation = new Reservation(member, date, time, theme, store, LocalDateTime.now());
-        return reservationRepository.insert(reservation, storeId);
-    }
-
-    @Transactional
-    public void deleteByManager(Member manager, Long id) {
-        Reservation reservation = reservationRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("존재하지 않는 예약입니다. 예약을 확인해주세요."));
-        validateManagedStore(manager, reservation.getStore().getId());
-
-        Long cancelId = reservation.getCancelId(LocalDateTime.now());
-        reservationRepository.delete(cancelId);
-    }
-
-    @Transactional
-    public Reservation updateByManager(Member manager, Long id, LocalDate date, Long timeId) {
-        Reservation nowReservation = reservationRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("존재하지 않는 예약입니다. 예약을 확인해주세요."));
-        validateManagedStore(manager, nowReservation.getStore().getId());
-
-        ReservationTime updateTime = findReservationTime(timeId);
-        validateDuplicateReservation(date, timeId, nowReservation.getTheme().getId(), nowReservation.getStore().getId());
-
-        Reservation updateReservation = nowReservation.update(date, updateTime, LocalDateTime.now());
-        reservationRepository.updateByDateAndTime(id, date, timeId);
-        return updateReservation;
-    }
-
-    private void validateManagedStore(Member manager, Long storeId) {
-        if (!storeManagerRepository.existsByMemberIdAndStoreId(manager.getId(), storeId)) {
-            throw new AuthorizationException("해당하는 매장의 관리자 권한이 필요합니다.");
-        }
-    }
-
-    private Member findMember(Long memberId) {
-        return memberRepository.findById(memberId)
-                .orElseThrow(() -> new NotFoundException("존재하지 않는 사용자입니다."));
     }
 }

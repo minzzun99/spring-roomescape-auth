@@ -19,22 +19,22 @@ import roomescape.controller.dto.ReservationResponse;
 import roomescape.controller.dto.UpdateReservationRequest;
 import roomescape.domain.Member;
 import roomescape.domain.Reservation;
-import roomescape.service.ReservationService;
+import roomescape.service.AdminReservationService;
 
 @RestController
 @RequestMapping("/admin/reservations")
 public class AdminReservationController {
 
-    private final ReservationService reservationService;
+    private final AdminReservationService adminReservationService;
 
-    public AdminReservationController(ReservationService reservationService) {
-        this.reservationService = reservationService;
+    public AdminReservationController(AdminReservationService adminReservationService) {
+        this.adminReservationService = adminReservationService;
     }
 
     @GetMapping
     public List<ReservationResponse> getReservations(@LoginMember Member manager,
                                                      @RequestParam(value = "name", required = false) String name) {
-        return reservationService.findAllByManager(name, manager).stream()
+        return adminReservationService.findAll(name, manager).stream()
                 .map(ReservationResponse::from)
                 .toList();
     }
@@ -43,7 +43,7 @@ public class AdminReservationController {
     public ResponseEntity<ReservationResponse> createReservation(@LoginMember Member manager,
                                                                  @Valid @RequestBody AdminReservationRequest request) {
 
-        Reservation reservation = reservationService.createByManager(
+        Reservation reservation = adminReservationService.create(
                 manager,
                 request.memberId(),
                 request.date(),
@@ -56,7 +56,7 @@ public class AdminReservationController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReservation(@LoginMember Member member, @PathVariable Long id) {
-        reservationService.deleteByManager(member, id);
+        adminReservationService.delete(member, id);
         return ResponseEntity.noContent().build();
     }
 
@@ -64,7 +64,7 @@ public class AdminReservationController {
     public ResponseEntity<ReservationResponse> updateReservation(@LoginMember Member member,
                                                                  @PathVariable Long id,
                                                                  @Valid @RequestBody UpdateReservationRequest request) {
-        Reservation updateReservation = reservationService.updateByManager(member, id, request.date(), request.timeId());
+        Reservation updateReservation = adminReservationService.update(member, id, request.date(), request.timeId());
         return ResponseEntity.ok(ReservationResponse.from(updateReservation));
     }
 }
