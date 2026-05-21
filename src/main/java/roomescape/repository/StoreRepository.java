@@ -22,6 +22,11 @@ public class StoreRepository {
         return result.stream().findAny();
     }
 
+    public List<Store> findAll() {
+        String sql = "SELECT id, name FROM store";
+        return jdbcTemplate.query(sql, storeRowMapper);
+    }
+
     private final RowMapper<Store> storeRowMapper = (resultSet, rowNum) -> {
         return new Store(
                 resultSet.getLong("id"),

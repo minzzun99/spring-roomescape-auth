@@ -35,7 +35,8 @@ public class AuthenticationPrincipalConfig implements WebMvcConfigurer {
                         "/themes/weekly-top");
 
         registry.addInterceptor(new AdminCheckInterceptor(tokenProvider, tokenExtractor, memberRepository))
-                .addPathPatterns("/admin/**");
+                .addPathPatterns("/admin/**")
+                .excludePathPatterns("/admin");
     }
 
     @Override
