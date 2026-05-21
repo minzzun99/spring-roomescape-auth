@@ -13,10 +13,13 @@ import org.springframework.stereotype.Repository;
 import roomescape.domain.Member;
 import roomescape.domain.Reservation;
 import roomescape.domain.ReservationTime;
+import roomescape.domain.Role;
+import roomescape.domain.Store;
 import roomescape.domain.Theme;
 
 @Repository
 public class ReservationRepository {
+    private static final Long DEFAULT_STORE_ID = 1L;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -31,6 +34,9 @@ public class ReservationRepository {
                 "    m.name as member_name,\n" +
                 "    m.email,\n" +
                 "    m.password,\n" +
+                "    m.role as member_role,\n" +
+                "    r.store_id,\n" +
+                "    s.name as store_name,\n" +
                 "    r.date,\n" +
                 "    rt.id as time_id,\n" +
                 "    rt.start_at as time_value,\n" +
@@ -41,6 +47,8 @@ public class ReservationRepository {
                 "FROM reservation as r\n" +
                 "INNER JOIN member as m\n" +
                 "  ON r.member_id = m.id\n" +
+                "INNER JOIN store as s\n" +
+                "  ON r.store_id = s.id\n" +
                 "INNER JOIN reservation_time as rt\n" +
                 "  ON r.time_id = rt.id\n" +
                 "INNER JOIN theme as t\n" +
@@ -56,6 +64,9 @@ public class ReservationRepository {
                 "    m.name as member_name,\n" +
                 "    m.email,\n" +
                 "    m.password,\n" +
+                "    m.role as member_role,\n" +
+                "    r.store_id,\n" +
+                "    s.name as store_name,\n" +
                 "    r.date,\n" +
                 "    rt.id as time_id,\n" +
                 "    rt.start_at as time_value,\n" +
@@ -66,6 +77,8 @@ public class ReservationRepository {
                 "FROM reservation as r\n" +
                 "INNER JOIN member as m\n" +
                 "  ON r.member_id = m.id\n" +
+                "INNER JOIN store as s\n" +
+                "  ON r.store_id = s.id\n" +
                 "INNER JOIN reservation_time as rt\n" +
                 "  ON r.time_id = rt.id\n" +
                 "INNER JOIN theme as t\n" +
@@ -82,6 +95,9 @@ public class ReservationRepository {
                 "    m.name as member_name,\n" +
                 "    m.email,\n" +
                 "    m.password,\n" +
+                "    m.role as member_role,\n" +
+                "    r.store_id,\n" +
+                "    s.name as store_name,\n" +
                 "    r.date,\n" +
                 "    rt.id as time_id,\n" +
                 "    rt.start_at as time_value,\n" +
@@ -92,6 +108,8 @@ public class ReservationRepository {
                 "FROM reservation as r\n" +
                 "INNER JOIN member as m\n" +
                 "  ON r.member_id = m.id\n" +
+                "INNER JOIN store as s\n" +
+                "  ON r.store_id = s.id\n" +
                 "INNER JOIN reservation_time as rt\n" +
                 "  ON r.time_id = rt.id\n" +
                 "INNER JOIN theme as t\n" +
@@ -101,22 +119,23 @@ public class ReservationRepository {
         return jdbcTemplate.query(sql, reservationRowMapper, memberId);
     }
 
-    public Reservation insert(Reservation reservation) {
-        String sql = "INSERT INTO reservation(member_id, date, time_id, theme_id) VALUES (?, ?, ?, ?);";
+    public Reservation insert(Reservation reservation, Long storeId) {
+        String sql = "INSERT INTO reservation(member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?);";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement pstmt = connection.prepareStatement(
                     sql,
                     new String[]{"id"});
             pstmt.setLong(1, reservation.getMember().getId());
-            pstmt.setObject(2, reservation.getDate());
-            pstmt.setLong(3, reservation.getTime().getId());
-            pstmt.setLong(4, reservation.getTheme().getId());
+            pstmt.setLong(2, storeId);
+            pstmt.setObject(3, reservation.getDate());
+            pstmt.setLong(4, reservation.getTime().getId());
+            pstmt.setLong(5, reservation.getTheme().getId());
             return pstmt;
         }, keyHolder);
 
         return new Reservation(keyHolder.getKey().longValue(), reservation.getMember(), reservation.getDate(),
-                reservation.getTime(), reservation.getTheme());
+                reservation.getTime(), reservation.getTheme(), reservation.getStore());
     }
 
     public int delete(Long id) {
@@ -131,6 +150,9 @@ public class ReservationRepository {
                 "    m.name as member_name,\n" +
                 "    m.email,\n" +
                 "    m.password,\n" +
+                "    m.role as member_role,\n" +
+                "    r.store_id,\n" +
+                "    s.name as store_name,\n" +
                 "    r.date,\n" +
                 "    rt.id as time_id,\n" +
                 "    rt.start_at as time_value,\n" +
@@ -141,6 +163,8 @@ public class ReservationRepository {
                 "FROM reservation as r\n" +
                 "INNER JOIN member as m\n" +
                 "  ON r.member_id = m.id\n" +
+                "INNER JOIN store as s\n" +
+                "  ON r.store_id = s.id\n" +
                 "INNER JOIN reservation_time as rt\n" +
                 "  ON r.time_id = rt.id\n" +
                 "INNER JOIN theme as t\n" +
@@ -151,9 +175,9 @@ public class ReservationRepository {
         return jdbcTemplate.query(sql, reservationRowMapper, themeId, date);
     }
 
-    public boolean existsByDateAndTimeAndTheme(LocalDate date, Long timeId, Long themeId) {
-        String sql = "SELECT count(*) FROM reservation WHERE date = ? AND time_id = ? AND theme_id = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, date, timeId, themeId);
+    public boolean existsByStoreIdAndDateAndTimeAndTheme(Long storeId, LocalDate date, Long timeId, Long themeId) {
+        String sql = "SELECT count(*) FROM reservation WHERE store_id = ? AND date = ? AND time_id = ? AND theme_id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, storeId, date, timeId, themeId);
         return count != null && count > 0;
     }
 
@@ -164,6 +188,9 @@ public class ReservationRepository {
                 "    m.name as member_name,\n" +
                 "    m.email,\n" +
                 "    m.password,\n" +
+                "    m.role as member_role,\n" +
+                "    r.store_id,\n" +
+                "    s.name as store_name,\n" +
                 "    r.date,\n" +
                 "    rt.id as time_id,\n" +
                 "    rt.start_at as time_value,\n" +
@@ -174,6 +201,8 @@ public class ReservationRepository {
                 "FROM reservation as r\n" +
                 "INNER JOIN member as m\n" +
                 "  ON r.member_id = m.id\n" +
+                "INNER JOIN store as s\n" +
+                "  ON r.store_id = s.id\n" +
                 "INNER JOIN reservation_time as rt\n" +
                 "  ON r.time_id = rt.id\n" +
                 "INNER JOIN theme as t\n" +
@@ -219,13 +248,18 @@ public class ReservationRepository {
                 resultSet.getLong("member_id"),
                 resultSet.getString("member_name"),
                 resultSet.getString("email"),
-                resultSet.getString("password"));
+                resultSet.getString("password"),
+                Role.valueOf(resultSet.getString("member_role")));
+        Store store = new Store(
+                resultSet.getLong("store_id"),
+                resultSet.getString("store_name"));
 
         return new Reservation(
                 resultSet.getLong("reservation_id"),
                 member,
                 resultSet.getObject("date", LocalDate.class),
                 time,
-                theme);
+                theme,
+                store);
     };
 }

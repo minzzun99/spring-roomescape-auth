@@ -53,7 +53,8 @@ public class ReservationController {
                 member,
                 request.date(),
                 request.timeId(),
-                request.themeId());
+                request.themeId(),
+                request.storeId());
         return ResponseEntity.created(URI.create("/reservations/" + reservation.getId()))
                 .body(ReservationResponse.from(reservation));
     }

@@ -8,12 +8,14 @@ import org.springframework.transaction.annotation.Transactional;
 import roomescape.domain.Member;
 import roomescape.domain.Reservation;
 import roomescape.domain.ReservationTime;
+import roomescape.domain.Store;
 import roomescape.domain.Theme;
 import roomescape.exception.AuthorizationException;
 import roomescape.exception.ConflictException;
 import roomescape.exception.NotFoundException;
 import roomescape.repository.ReservationRepository;
 import roomescape.repository.ReservationTimeRepository;
+import roomescape.repository.StoreRepository;
 import roomescape.repository.ThemeRepository;
 
 @Service
@@ -23,13 +25,17 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final ReservationTimeRepository reservationTimeRepository;
     private final ThemeRepository themeRepository;
+    private final StoreRepository storeRepository;
 
     public ReservationService(ReservationRepository reservationRepository,
-                              ReservationTimeRepository reservationTimeRepository, ThemeRepository themeRepository) {
+                              ReservationTimeRepository reservationTimeRepository,
+                              ThemeRepository themeRepository,
+                              StoreRepository storeRepository) {
 
         this.reservationRepository = reservationRepository;
         this.reservationTimeRepository = reservationTimeRepository;
         this.themeRepository = themeRepository;
+        this.storeRepository = storeRepository;
     }
 
     public List<Reservation> findAll(String name) {
@@ -44,11 +50,12 @@ public class ReservationService {
     }
 
     @Transactional
-    public Reservation create(Member member, LocalDate date, Long timeId, Long themeId) {
+    public Reservation create(Member member, LocalDate date, Long timeId, Long themeId, Long storeId) {
         validateDuplicateReservation(date, timeId, themeId);
         ReservationTime time = findReservationTime(timeId);
         Theme theme = findTheme(themeId);
-        Reservation reservation = new Reservation(member, date, time, theme, LocalDateTime.now());
+        Store store = findStore(storeId);
+        Reservation reservation = new Reservation(member, date, time, theme, store, LocalDateTime.now());
         return reservationRepository.insert(reservation);
     }
 
@@ -76,6 +83,11 @@ public class ReservationService {
     private Theme findTheme(Long themeId) {
         return themeRepository.findBy(themeId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 테마입니다. 테마를 확인해주세요."));
+    }
+
+    private Store findStore(Long storeId) {
+        return storeRepository.findById(storeId)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 매장입니다."));
     }
 
     @Transactional
