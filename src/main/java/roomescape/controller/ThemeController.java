@@ -36,22 +36,6 @@ public class ThemeController {
                 .toList();
     }
 
-    @PostMapping
-    public ResponseEntity<ThemeResponse> createTheme(@Valid @RequestBody ThemeRequest request) {
-        Theme theme = themeService.create(
-                request.name(),
-                request.description(),
-                request.thumbnail());
-        return ResponseEntity.created(URI.create("/themes/" + theme.getId()))
-                .body(ThemeResponse.from(theme));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTheme(@PathVariable Long id) {
-        themeService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/{id}/times")
     public List<TimeAvailabilityDto> getAvailableTimes(@PathVariable Long id, @RequestParam("date") LocalDate date) {
         return themeService.findAvailableTime(id, date);

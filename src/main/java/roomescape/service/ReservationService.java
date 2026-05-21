@@ -108,12 +108,11 @@ public class ReservationService {
     }
 
     public List<Reservation> findAllByManager(String name, Member manager) {
-        validateAdmin(manager);
         Long storeId = storeManagerRepository.findStoreIdByMemberId(manager.getId())
                 .orElseThrow(() -> new AuthorizationException("관리하는 매장이 없습니다. 관리자를 확인해주세요."));
 
         if (name != null) {
-            return reservationRepository.findByStoreIdAndName(name, storeId);
+            return reservationRepository.findByStoreIdAndName(storeId, name);
         }
         return reservationRepository.findByStoreId(storeId);
     }
@@ -124,7 +123,6 @@ public class ReservationService {
 
     @Transactional
     public Reservation createByManager(Member manager, Long memberId, LocalDate date, Long timeId, Long themeId, Long storeId) {
-        validateAdmin(manager);
         validateManagedStore(manager, storeId);
 
         validateDuplicateReservation(date, timeId, themeId, storeId);
@@ -140,7 +138,6 @@ public class ReservationService {
 
     @Transactional
     public void deleteByManager(Member manager, Long id) {
-        validateAdmin(manager);
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 예약입니다. 예약을 확인해주세요."));
         validateManagedStore(manager, reservation.getStore().getId());
@@ -151,7 +148,6 @@ public class ReservationService {
 
     @Transactional
     public Reservation updateByManager(Member manager, Long id, LocalDate date, Long timeId) {
-        validateAdmin(manager);
         Reservation nowReservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 예약입니다. 예약을 확인해주세요."));
         validateManagedStore(manager, nowReservation.getStore().getId());
@@ -162,12 +158,6 @@ public class ReservationService {
         Reservation updateReservation = nowReservation.update(date, updateTime, LocalDateTime.now());
         reservationRepository.updateByDateAndTime(id, date, timeId);
         return updateReservation;
-    }
-
-    private void validateAdmin(Member manager) {
-        if (!manager.isAdmin()) {
-            throw new AuthorizationException("관리자 권한이 필요합니다.");
-        }
     }
 
     private void validateManagedStore(Member manager, Long storeId) {
