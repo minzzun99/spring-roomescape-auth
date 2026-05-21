@@ -176,6 +176,25 @@
             border-color: var(--danger);
         }
 
+        .btn-edit {
+            padding: 0.3rem 0.75rem;
+            background: var(--accent-dim);
+            border: 1px solid rgba(200,169,110,0.3);
+            border-radius: 4px;
+            color: var(--accent);
+            font-size: 0.72rem;
+            font-family: 'Noto Sans KR', sans-serif;
+            cursor: pointer;
+            letter-spacing: 0.05em;
+            transition: all 0.2s;
+            margin-right: 0.4rem;
+        }
+
+        .btn-edit:hover {
+            background: rgba(200,169,110,0.22);
+            border-color: var(--accent);
+        }
+
         .btn-ghost {
             padding: 0.6rem 1.5rem;
             background: transparent;
@@ -240,6 +259,35 @@
 
         .form-input::placeholder { color: var(--text-muted); }
         .form-input:focus { outline: none; border-color: var(--accent); }
+
+        .toolbar {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .toolbar .form-input {
+            flex: 1;
+        }
+
+        .btn-inline {
+            padding: 0.65rem 1rem;
+            background: var(--surface);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-hover);
+            border-radius: 6px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .btn-inline:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
 
         select.form-input {
             cursor: pointer;
@@ -344,7 +392,6 @@
         .modal-content {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-top: 2px solid var(--danger);
             border-radius: 10px;
             width: 90%;
             max-width: 400px;
@@ -353,6 +400,9 @@
             transition: all 0.3s ease;
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
+
+        .modal-content.error-theme { border-top: 2px solid var(--danger); }
+        .modal-content.edit-theme { border-top: 2px solid var(--accent); }
 
         .modal-overlay.active .modal-content {
             transform: translateY(0);
@@ -371,9 +421,11 @@
             font-family: 'Noto Serif KR', serif;
             font-size: 1.1rem;
             letter-spacing: 0.05em;
-            color: var(--danger);
             font-weight: 600;
         }
+
+        .modal-title.danger { color: var(--danger); }
+        .modal-title.accent { color: var(--accent); }
 
         .modal-status {
             font-family: 'Noto Sans KR', sans-serif;
@@ -399,6 +451,7 @@
 
         @media (max-width: 768px) {
             .panel-grid { grid-template-columns: 1fr; }
+            .toolbar { flex-direction: column; }
             header { padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
             main { padding: 1.5rem 1rem 4rem; }
         }
@@ -424,12 +477,18 @@
     <div class="tab-panel active" id="panel-reservation">
         <div class="panel-grid">
             <div>
+                <div class="toolbar">
+                    <input class="form-input" type="text" id="reservation-search-name" placeholder="예약자 이름 검색">
+                    <button class="btn-inline" onclick="loadReservations()">검색</button>
+                    <button class="btn-inline" onclick="clearReservationSearch()">초기화</button>
+                </div>
                 <div class="table-wrap">
                     <table>
                         <thead>
                         <tr>
                             <th>ID</th>
                             <th>예약자</th>
+                            <th>매장</th>
                             <th>테마</th>
                             <th>날짜</th>
                             <th>시간</th>
@@ -437,7 +496,7 @@
                         </tr>
                         </thead>
                         <tbody id="reservation-tbody">
-                        <tr><td colspan="6"><div class="loading-dots"><span></span><span></span><span></span></div></td></tr>
+                        <tr><td colspan="7"><div class="loading-dots"><span></span><span></span><span></span></div></td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -446,8 +505,12 @@
             <div class="form-card">
                 <div class="form-card-title">예약 추가</div>
                 <div class="form-group">
-                    <label class="form-label">예약자</label>
-                    <input class="form-input" type="text" id="res-name" placeholder="이름">
+                    <label class="form-label">회원 ID</label>
+                    <input class="form-input" type="number" id="res-member-id" placeholder="예약 대상 회원 ID">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">매장</label>
+                    <select class="form-input" id="res-store"></select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">날짜</label>
@@ -540,9 +603,9 @@
 <div class="toast" id="toast"></div>
 
 <div id="error-modal" class="modal-overlay">
-    <div class="modal-content">
+    <div class="modal-content error-theme">
         <div class="modal-header">
-            <span class="modal-title">System Error</span>
+            <span class="modal-title danger">System Error</span>
             <span class="modal-status" id="error-status">400</span>
         </div>
         <div class="modal-body" id="error-message">
@@ -554,7 +617,35 @@
     </div>
 </div>
 
+<div id="reservation-edit-modal" class="modal-overlay">
+    <div class="modal-content edit-theme">
+        <div class="modal-header">
+            <span class="modal-title accent">예약 변경</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">날짜</label>
+                <input class="form-input" type="date" id="edit-res-date">
+            </div>
+            <div class="form-group">
+                <label class="form-label">시간</label>
+                <select class="form-input" id="edit-res-time"></select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-ghost" onclick="closeReservationEditModal()">취소</button>
+            <button class="btn-submit" onclick="updateReservation()">변경</button>
+        </div>
+    </div>
+</div>
+
 <script>
+    const stores = [
+        { id: 1, name: '판교점' },
+        { id: 2, name: '잠실점' }
+    ];
+    let editingReservationId = null;
+
     // ── ERROR MODAL 제어 ──────────────────────────────
     function showErrorAlert(errorResponse) {
         if (errorResponse.redirected) return;
@@ -608,7 +699,6 @@
                 throw { redirected: true };
             }
 
-            // 백엔드에서 내려주는 ErrorResponse 파싱 시도 (실패 시 기본 에러 객체 생성)
             const errorData = await res.json().catch(() => ({
                 status: res.status,
                 message: '요청을 처리하는 도중 서버 오류가 발생했습니다.'
@@ -624,41 +714,53 @@
     async function loadReservations() {
         const tbody = document.getElementById('reservation-tbody');
         try {
-            const data = await api('GET', '/reservations');
+            const name = document.getElementById('reservation-search-name').value.trim();
+            const query = name ? `?name=${encodeURIComponent(name)}` : '';
+            const data = await api('GET', `/admin/reservations${query}`);
             if (!data.length) {
-                tbody.innerHTML = `<tr class="empty-row"><td colspan="6">예약이 없습니다</td></tr>`;
+                tbody.innerHTML = `<tr class="empty-row"><td colspan="7">예약이 없습니다</td></tr>`;
                 return;
             }
             tbody.innerHTML = data.map(r => `
                 <tr>
                     <td>${r.id}</td>
                     <td class="primary">${r.name}</td>
+                    <td>${r.storeName ?? '-'}</td>
                     <td>${r.theme?.name ?? '-'}</td>
                     <td>${r.date}</td>
                     <td>${r.time?.startAt?.slice(0,5) ?? '-'}</td>
-                    <td><button class="btn-delete" onclick="deleteReservation(${r.id})">삭제</button></td>
+                    <td>
+                        <button class="btn-edit" onclick="openReservationEditModal(${r.id})">변경</button>
+                        <button class="btn-delete" onclick="deleteReservation(${r.id})">삭제</button>
+                    </td>
                 </tr>
             `).join('');
         } catch (error) {
-            tbody.innerHTML = `<tr class="empty-row"><td colspan="6">불러오기 실패</td></tr>`;
-            // 불러오기 실패 시에도 모달을 띄우려면 아래 주석 해제
-            // showErrorAlert(error);
+            tbody.innerHTML = `<tr class="empty-row"><td colspan="7">불러오기 실패</td></tr>`;
+            showErrorAlert(error);
         }
     }
 
+    function clearReservationSearch() {
+        document.getElementById('reservation-search-name').value = '';
+        loadReservations();
+    }
+
     async function createReservation() {
-        const name = document.getElementById('res-name').value.trim();
+        const memberId = parseInt(document.getElementById('res-member-id').value);
+        const storeId = parseInt(document.getElementById('res-store').value);
         const date = document.getElementById('res-date').value;
         const themeId = parseInt(document.getElementById('res-theme').value);
         const timeId = parseInt(document.getElementById('res-time').value);
 
-        if (!name || !date || !themeId || !timeId) {
+        if (!memberId || !storeId || !date || !themeId || !timeId) {
             return showErrorAlert({ status: 400, message: '모든 항목을 입력하세요.' });
         }
 
         try {
-            await api('POST', '/reservations', { name, date, themeId, timeId });
+            await api('POST', '/admin/reservations', { memberId, storeId, date, themeId, timeId });
             showToast('예약이 추가되었습니다', 'success');
+            document.getElementById('res-member-id').value = '';
             loadReservations();
         } catch (error) {
             showErrorAlert(error);
@@ -668,8 +770,50 @@
     async function deleteReservation(id) {
         if (!confirm('예약을 삭제하시겠습니까?')) return;
         try {
-            await api('DELETE', `/reservations/${id}`);
+            await api('DELETE', `/admin/reservations/${id}`);
             showToast('삭제되었습니다', 'success');
+            loadReservations();
+        } catch (error) {
+            showErrorAlert(error);
+        }
+    }
+
+    async function openReservationEditModal(id) {
+        editingReservationId = id;
+        const dateInput = document.getElementById('edit-res-date');
+        const timeSelect = document.getElementById('edit-res-time');
+        dateInput.min = new Date().toISOString().split('T')[0];
+        dateInput.value = '';
+        timeSelect.innerHTML = '<option>시간 불러오는 중...</option>';
+
+        try {
+            const times = await api('GET', '/times');
+            timeSelect.innerHTML = times.map(time =>
+                `<option value="${time.id}">${time.startAt?.slice(0,5)}</option>`
+            ).join('');
+            document.getElementById('reservation-edit-modal').classList.add('active');
+        } catch (error) {
+            showErrorAlert(error);
+        }
+    }
+
+    function closeReservationEditModal() {
+        editingReservationId = null;
+        document.getElementById('reservation-edit-modal').classList.remove('active');
+    }
+
+    async function updateReservation() {
+        const date = document.getElementById('edit-res-date').value;
+        const timeId = parseInt(document.getElementById('edit-res-time').value);
+
+        if (!editingReservationId || !date || !timeId) {
+            return showErrorAlert({ status: 400, message: '변경할 날짜와 시간을 선택하세요.' });
+        }
+
+        try {
+            await api('PATCH', `/admin/reservations/${editingReservationId}`, { date, timeId });
+            showToast('예약이 변경되었습니다', 'success');
+            closeReservationEditModal();
             loadReservations();
         } catch (error) {
             showErrorAlert(error);
@@ -707,6 +851,12 @@
         }
     }
 
+    function loadStores() {
+        document.getElementById('res-store').innerHTML = stores.map(store =>
+            `<option value="${store.id}">${store.name}</option>`
+        ).join('');
+    }
+
     async function createTheme() {
         const name = document.getElementById('theme-name').value.trim();
         const description = document.getElementById('theme-desc').value.trim();
@@ -717,7 +867,7 @@
         }
 
         try {
-            await api('POST', '/themes', { name, description, thumbnail });
+            await api('POST', '/admin/themes', { name, description, thumbnail });
             showToast('테마가 추가되었습니다', 'success');
             loadThemes();
         } catch (error) {
@@ -728,7 +878,7 @@
     async function deleteTheme(id) {
         if (!confirm('테마를 삭제하시겠습니까?')) return;
         try {
-            await api('DELETE', `/themes/${id}`);
+            await api('DELETE', `/admin/themes/${id}`);
             showToast('삭제되었습니다', 'success');
             loadThemes();
         } catch (error) {
@@ -770,7 +920,7 @@
         }
 
         try {
-            await api('POST', '/times', { startAt });
+            await api('POST', '/admin/times', { startAt });
             showToast('시간이 추가되었습니다', 'success');
             loadTimes();
         } catch (error) {
@@ -781,7 +931,7 @@
     async function deleteTime(id) {
         if (!confirm('시간을 삭제하시겠습니까?')) return;
         try {
-            await api('DELETE', `/times/${id}`);
+            await api('DELETE', `/admin/times/${id}`);
             showToast('삭제되었습니다', 'success');
             loadTimes();
         } catch (error) {
@@ -799,6 +949,7 @@
 
     // ── 초기 로드 ─────────────────────────────────────
     window.onload = function () {
+        loadStores();
         loadReservations();
         loadThemes();
         loadTimes();

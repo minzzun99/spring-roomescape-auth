@@ -255,6 +255,24 @@
             cursor: pointer;
         }
 
+        .store-select {
+            appearance: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.9rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            max-width: 280px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .store-select:hover { border-color: var(--border-hover); }
+        .store-select:focus { outline: none; border-color: var(--accent); }
+
         /* 시간 슬롯 */
         .time-grid {
             display: flex;
@@ -545,18 +563,22 @@
     <div class="steps" id="step-indicator">
         <div class="step active" id="step-1">
             <div class="step-dot">1</div>
-            <span class="step-label">테마</span>
+            <span class="step-label">매장</span>
         </div>
         <div class="step" id="step-2">
             <div class="step-dot">2</div>
-            <span class="step-label">날짜</span>
+            <span class="step-label">테마</span>
         </div>
         <div class="step" id="step-3">
             <div class="step-dot">3</div>
-            <span class="step-label">시간</span>
+            <span class="step-label">날짜</span>
         </div>
         <div class="step" id="step-4">
             <div class="step-dot">4</div>
+            <span class="step-label">시간</span>
+        </div>
+        <div class="step" id="step-5">
+            <div class="step-dot">5</div>
             <span class="step-label">확정</span>
         </div>
     </div>
@@ -564,6 +586,16 @@
     <div class="section">
         <div class="section-header">
             <div class="section-num">1</div>
+            <span class="section-title">매장 선택</span>
+        </div>
+        <select class="store-select" id="store-select"></select>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+        <div class="section-header">
+            <div class="section-num">2</div>
             <span class="section-title">테마 선택</span>
         </div>
         <div class="theme-grid" id="theme-grid">
@@ -577,7 +609,7 @@
 
     <div class="section">
         <div class="section-header">
-            <div class="section-num">2</div>
+            <div class="section-num">3</div>
             <span class="section-title">날짜 선택</span>
         </div>
         <input type="date" id="date-select">
@@ -587,7 +619,7 @@
 
     <div class="section">
         <div class="section-header">
-            <div class="section-num">3</div>
+            <div class="section-num">4</div>
             <span class="section-title">예약 가능 시간</span>
         </div>
         <div id="time-container">
@@ -599,7 +631,7 @@
 
     <div class="section" id="booking-section" style="display: none;">
         <div class="section-header">
-            <div class="section-num">4</div>
+            <div class="section-num">5</div>
             <span class="section-title">예약 확정</span>
         </div>
         <div class="booking-form">
@@ -675,10 +707,16 @@
     // ────────────────────────────────────────────────
 
     let allThemes = [];
+    let selectedStoreId = null;
     let selectedThemeId = null;
     let selectedTimeId = null;
     let selectedTimeLabel = null;
+    const stores = [
+        { id: 1, name: '판교점' },
+        { id: 2, name: '잠실점' }
+    ];
 
+    const storeSelect = document.getElementById('store-select');
     const themeGrid = document.getElementById('theme-grid');
     const dateSelect = document.getElementById('date-select');
     const timeContainer = document.getElementById('time-container');
@@ -688,6 +726,7 @@
     dateSelect.min = today;
 
     window.onload = function () {
+        renderStores();
         fetch('/themes')
             .then(res => res.json())
             .then(themes => {
@@ -710,6 +749,19 @@
                 allThemes = dummy;
                 renderThemes(dummy);
             });
+    };
+
+    function renderStores() {
+        storeSelect.innerHTML = '<option value="">매장을 선택하세요</option>' + stores.map(store =>
+            `<option value="${store.id}">${store.name}</option>`
+        ).join('');
+    }
+
+    storeSelect.onchange = function () {
+        selectedStoreId = parseInt(storeSelect.value) || null;
+        selectedTimeId = null;
+        bookingSection.style.display = 'none';
+        updateStepIndicator();
     };
 
     function renderThemes(themes) {
@@ -811,8 +863,13 @@
 
     function showBookingSection() {
         const theme = allThemes.find(t => t.id == selectedThemeId);
+        const store = stores.find(s => s.id == selectedStoreId);
         const summary = document.getElementById('booking-summary');
         summary.innerHTML = `
+            <div class="summary-row">
+                <span class="summary-label">매장</span>
+                <span class="summary-value">${store ? store.name : ''}</span>
+            </div>
             <div class="summary-row">
                 <span class="summary-label">테마</span>
                 <span class="summary-value">${theme ? theme.name : ''}</span>
@@ -838,11 +895,17 @@
             return;
         }
 
+        if (!selectedStoreId || !selectedThemeId || !dateSelect.value || !selectedTimeId) {
+            showErrorAlert({ status: 400, message: '매장, 테마, 날짜, 시간을 모두 선택해주세요.' });
+            return;
+        }
+
         const btn = document.getElementById('btn-reserve');
         btn.disabled = true;
         btn.textContent = '예약 중...';
 
         const body = {
+            storeId: selectedStoreId,
             themeId: parseInt(selectedThemeId),
             date: dateSelect.value,
             timeId: selectedTimeId
@@ -885,8 +948,9 @@
     }
 
     function updateStepIndicator() {
-        const steps = ['step-1', 'step-2', 'step-3', 'step-4'];
+        const steps = ['step-1', 'step-2', 'step-3', 'step-4', 'step-5'];
         const done = [
+            !!selectedStoreId,
             !!selectedThemeId,
             !!dateSelect.value,
             !!selectedTimeId,
