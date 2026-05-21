@@ -289,6 +289,54 @@
             border-color: var(--accent);
         }
 
+        .member-search-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .member-search-row .form-input {
+            flex: 1;
+        }
+
+        .member-results {
+            margin-top: 0.6rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .member-result {
+            width: 100%;
+            padding: 0.65rem 0.75rem;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.78rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .member-result:hover,
+        .member-result.selected {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-dim);
+        }
+
+        .selected-member {
+            margin-top: 0.6rem;
+            padding: 0.65rem 0.75rem;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            color: var(--accent);
+            background: var(--accent-dim);
+            font-size: 0.78rem;
+            line-height: 1.5;
+        }
+
         select.form-input {
             cursor: pointer;
             appearance: none;
@@ -505,8 +553,13 @@
             <div class="form-card">
                 <div class="form-card-title">예약 추가</div>
                 <div class="form-group">
-                    <label class="form-label">회원 ID</label>
-                    <input class="form-input" type="number" id="res-member-id" placeholder="예약 대상 회원 ID">
+                    <label class="form-label">회원 검색</label>
+                    <div class="member-search-row">
+                        <input class="form-input" type="text" id="member-search-name" placeholder="회원 이름">
+                        <button class="btn-inline" onclick="searchMembers()">검색</button>
+                    </div>
+                    <div class="member-results" id="member-results"></div>
+                    <div class="selected-member" id="selected-member" style="display:none;"></div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">매장</label>
@@ -640,10 +693,8 @@
 </div>
 
 <script>
-    const stores = [
-        { id: 1, name: '판교점' },
-        { id: 2, name: '잠실점' }
-    ];
+    let stores = [];
+    let selectedMemberId = null;
     let editingReservationId = null;
 
     // ── ERROR MODAL 제어 ──────────────────────────────
@@ -747,7 +798,7 @@
     }
 
     async function createReservation() {
-        const memberId = parseInt(document.getElementById('res-member-id').value);
+        const memberId = selectedMemberId;
         const storeId = parseInt(document.getElementById('res-store').value);
         const date = document.getElementById('res-date').value;
         const themeId = parseInt(document.getElementById('res-theme').value);
@@ -760,11 +811,65 @@
         try {
             await api('POST', '/admin/reservations', { memberId, storeId, date, themeId, timeId });
             showToast('예약이 추가되었습니다', 'success');
-            document.getElementById('res-member-id').value = '';
+            clearSelectedMember();
             loadReservations();
         } catch (error) {
             showErrorAlert(error);
         }
+    }
+
+    async function searchMembers() {
+        const name = document.getElementById('member-search-name').value.trim();
+        const results = document.getElementById('member-results');
+
+        clearSelectedMember(false);
+
+        if (!name) {
+            results.innerHTML = '<div class="member-result">검색할 이름을 입력하세요.</div>';
+            return;
+        }
+
+        results.innerHTML = '<div class="member-result">검색 중...</div>';
+
+        try {
+            const members = await api('GET', `/admin/members?name=${encodeURIComponent(name)}`);
+            if (!members.length) {
+                results.innerHTML = '<div class="member-result">검색 결과가 없습니다.</div>';
+                return;
+            }
+
+            results.innerHTML = members.map(member => `
+                <button class="member-result" onclick="selectMember(${member.id}, '${escapeSingleQuote(member.name)}', '${escapeSingleQuote(member.email)}')">
+                    ${member.name} · ${member.email}
+                </button>
+            `).join('');
+        } catch (error) {
+            results.innerHTML = '';
+            showErrorAlert(error);
+        }
+    }
+
+    function selectMember(id, name, email) {
+        selectedMemberId = id;
+        document.getElementById('member-results').innerHTML = '';
+        const selected = document.getElementById('selected-member');
+        selected.style.display = 'block';
+        selected.textContent = `${name} · ${email}`;
+    }
+
+    function clearSelectedMember(clearInput = true) {
+        selectedMemberId = null;
+        document.getElementById('member-results').innerHTML = '';
+        const selected = document.getElementById('selected-member');
+        selected.style.display = 'none';
+        selected.textContent = '';
+        if (clearInput) {
+            document.getElementById('member-search-name').value = '';
+        }
+    }
+
+    function escapeSingleQuote(value) {
+        return String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     }
 
     async function deleteReservation(id) {
@@ -851,10 +956,17 @@
         }
     }
 
-    function loadStores() {
-        document.getElementById('res-store').innerHTML = stores.map(store =>
-            `<option value="${store.id}">${store.name}</option>`
-        ).join('');
+    async function loadStores() {
+        const storeSelect = document.getElementById('res-store');
+        try {
+            stores = await api('GET', '/stores');
+            storeSelect.innerHTML = stores.map(store =>
+                `<option value="${store.id}">${store.name}</option>`
+            ).join('');
+        } catch (error) {
+            storeSelect.innerHTML = '<option value="">매장 불러오기 실패</option>';
+            showErrorAlert(error);
+        }
     }
 
     async function createTheme() {

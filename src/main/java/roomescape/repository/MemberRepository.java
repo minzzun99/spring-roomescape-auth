@@ -29,6 +29,11 @@ public class MemberRepository {
         return result.stream().findAny();
     }
 
+    public List<Member> findMembersByName(String name) {
+        String sql = "SELECT id, name, email, password, role FROM member WHERE name = ?;";
+        return jdbcTemplate.query(sql, memberRowMapper, name);
+    }
+
     private final RowMapper<Member> memberRowMapper = (resultSet, rowNum) -> {
         return new Member(
                 resultSet.getLong("id"),

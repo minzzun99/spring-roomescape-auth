@@ -56,5 +56,4 @@ CREATE TABLE IF NOT EXISTS reservation (
     UNIQUE (store_id, date, time_id, theme_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_reservation_member_id ON reservation (member_id);
-CREATE INDEX IF NOT EXISTS idx_reservation_store_id ON reservation (store_id);
+CREATE INDEX IF NOT EXISTS idx_member_name ON member (name);
