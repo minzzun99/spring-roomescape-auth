@@ -29,4 +29,8 @@ public class Store {
             throw new IllegalArgumentException("매장 이름은 50자를 넘을 수 없습니다. 50자 이내로 입력해주세요.");
         }
     }
+
+    public boolean isSameId(Long storeId) {
+        return this.id != null && this.id.equals(storeId);
+    }
 }

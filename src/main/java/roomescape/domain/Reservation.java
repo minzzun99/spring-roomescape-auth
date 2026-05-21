@@ -52,8 +52,16 @@ public class Reservation {
         return theme;
     }
 
+    public Store getStore() {
+        return store;
+    }
+
     public String getStoreName() {
         return store.getName();
+    }
+
+    public boolean isSameStore(Long storeId) {
+        return this.store.isSameId(storeId);
     }
 
     public Reservation update(LocalDate updateDate, ReservationTime updateTime, LocalDateTime now) {
