@@ -1,6 +1,9 @@
 package roomescape.controller;
 
 public final class ValidationMessage {
+
+    public static final String MEMBER_IS_NULL = "예약자가 입력되지 않았습니다. 예약자를 입력해주세요.";
+
     public static final String DATE_IS_NULL = "날짜가 입력되지 않았습니다. 날짜를 입력해주세요.";
 
     public static final String TIME_IS_NULL = "시간대가 입력되지 않았습니다. 시간을 입력해주세요.";

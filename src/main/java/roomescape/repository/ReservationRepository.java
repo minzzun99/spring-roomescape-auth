@@ -27,37 +27,7 @@ public class ReservationRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<Reservation> findAll() {
-        String sql = "SELECT\n" +
-                "    r.id as reservation_id,\n" +
-                "    m.id as member_id,\n" +
-                "    m.name as member_name,\n" +
-                "    m.email,\n" +
-                "    m.password,\n" +
-                "    m.role as member_role,\n" +
-                "    r.store_id,\n" +
-                "    s.name as store_name,\n" +
-                "    r.date,\n" +
-                "    rt.id as time_id,\n" +
-                "    rt.start_at as time_value,\n" +
-                "    t.id as theme_id,\n" +
-                "    t.name as theme_name,\n" +
-                "    t.description,\n" +
-                "    t.thumbnail\n" +
-                "FROM reservation as r\n" +
-                "INNER JOIN member as m\n" +
-                "  ON r.member_id = m.id\n" +
-                "INNER JOIN store as s\n" +
-                "  ON r.store_id = s.id\n" +
-                "INNER JOIN reservation_time as rt\n" +
-                "  ON r.time_id = rt.id\n" +
-                "INNER JOIN theme as t\n" +
-                "  ON r.theme_id = t.id\n";
-
-        return jdbcTemplate.query(sql, reservationRowMapper);
-    }
-
-    public List<Reservation> findByName(String name) {
+    public List<Reservation> findByStoreId(Long storeId) {
         String sql = "SELECT\n" +
                 "    r.id as reservation_id,\n" +
                 "    m.id as member_id,\n" +
@@ -83,9 +53,41 @@ public class ReservationRepository {
                 "  ON r.time_id = rt.id\n" +
                 "INNER JOIN theme as t\n" +
                 "  ON r.theme_id = t.id\n" +
-                "WHERE m.name = ?\n";
+                "WHERE r.store_id = ?";
 
-        return jdbcTemplate.query(sql, reservationRowMapper, name);
+        return jdbcTemplate.query(sql, reservationRowMapper, storeId);
+    }
+
+    public List<Reservation> findByStoreIdAndName(Long storeId, String name) {
+        String sql = "SELECT\n" +
+                "    r.id as reservation_id,\n" +
+                "    m.id as member_id,\n" +
+                "    m.name as member_name,\n" +
+                "    m.email,\n" +
+                "    m.password,\n" +
+                "    m.role as member_role,\n" +
+                "    r.store_id,\n" +
+                "    s.name as store_name,\n" +
+                "    r.date,\n" +
+                "    rt.id as time_id,\n" +
+                "    rt.start_at as time_value,\n" +
+                "    t.id as theme_id,\n" +
+                "    t.name as theme_name,\n" +
+                "    t.description,\n" +
+                "    t.thumbnail\n" +
+                "FROM reservation as r\n" +
+                "INNER JOIN member as m\n" +
+                "  ON r.member_id = m.id\n" +
+                "INNER JOIN store as s\n" +
+                "  ON r.store_id = s.id\n" +
+                "INNER JOIN reservation_time as rt\n" +
+                "  ON r.time_id = rt.id\n" +
+                "INNER JOIN theme as t\n" +
+                "  ON r.theme_id = t.id\n" +
+                "WHERE r.store_id = ?\n" +
+                "AND m.name = ?";
+
+        return jdbcTemplate.query(sql, reservationRowMapper, storeId, name);
     }
 
     public List<Reservation> findByMemberId(Long memberId) {
@@ -175,9 +177,9 @@ public class ReservationRepository {
         return jdbcTemplate.query(sql, reservationRowMapper, themeId, date);
     }
 
-    public boolean existsByStoreIdAndDateAndTimeAndTheme(Long storeId, LocalDate date, Long timeId, Long themeId) {
-        String sql = "SELECT count(*) FROM reservation WHERE store_id = ? AND date = ? AND time_id = ? AND theme_id = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, storeId, date, timeId, themeId);
+    public boolean existsByStoreIdAndDateAndTimeAndTheme(LocalDate date, Long timeId, Long themeId, Long storeId) {
+        String sql = "SELECT count(*) FROM reservation WHERE date = ? AND time_id = ? AND theme_id = ? AND store_id = ? ";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, date, timeId, themeId, storeId);
         return count != null && count > 0;
     }
 

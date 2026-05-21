@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import roomescape.auth.LoginMember;
-import roomescape.controller.dto.ReservationRequest;
+import roomescape.controller.dto.AdminReservationRequest;
 import roomescape.controller.dto.ReservationResponse;
 import roomescape.controller.dto.UpdateReservationRequest;
 import roomescape.domain.Member;
@@ -22,28 +22,30 @@ import roomescape.domain.Reservation;
 import roomescape.service.ReservationService;
 
 @RestController
-@RequestMapping("/reservations")
-public class ReservationController {
+@RequestMapping("/admin/reservations")
+public class AdminReservationController {
 
     private final ReservationService reservationService;
 
-    public ReservationController(ReservationService reservationService) {
+    public AdminReservationController(ReservationService reservationService) {
         this.reservationService = reservationService;
     }
 
-    @GetMapping("/me")
-    public List<ReservationResponse> getMyReservations(@LoginMember Member member) {
-        return reservationService.findByMember(member).stream()
+    @GetMapping
+    public List<ReservationResponse> getReservations(@LoginMember Member manager,
+                                                     @RequestParam(value = "name", required = false) String name) {
+        return reservationService.findAllByManager(name, manager).stream()
                 .map(ReservationResponse::from)
                 .toList();
     }
 
     @PostMapping
-    public ResponseEntity<ReservationResponse> createReservation(@LoginMember Member member,
-                                                                 @Valid @RequestBody ReservationRequest request) {
+    public ResponseEntity<ReservationResponse> createReservation(@LoginMember Member manager,
+                                                                 @Valid @RequestBody AdminReservationRequest request) {
 
-        Reservation reservation = reservationService.create(
-                member,
+        Reservation reservation = reservationService.createByManager(
+                manager,
+                request.memberId(),
                 request.date(),
                 request.timeId(),
                 request.themeId(),
@@ -54,7 +56,7 @@ public class ReservationController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReservation(@LoginMember Member member, @PathVariable Long id) {
-        reservationService.delete(member, id);
+        reservationService.deleteByManager(member, id);
         return ResponseEntity.noContent().build();
     }
 
@@ -62,7 +64,7 @@ public class ReservationController {
     public ResponseEntity<ReservationResponse> updateReservation(@LoginMember Member member,
                                                                  @PathVariable Long id,
                                                                  @Valid @RequestBody UpdateReservationRequest request) {
-        Reservation updateReservation = reservationService.update(member, id, request.date(), request.timeId());
+        Reservation updateReservation = reservationService.updateByManager(member, id, request.date(), request.timeId());
         return ResponseEntity.ok(ReservationResponse.from(updateReservation));
     }
 }
