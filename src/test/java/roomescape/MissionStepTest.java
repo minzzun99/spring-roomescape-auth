@@ -39,9 +39,13 @@ public class MissionStepTest {
     }
 
     private String loginSuccess(String email) {
+        return loginSuccess(email, "password");
+    }
+
+    private String loginSuccess(String email, String password) {
         Map<String, String> login = new HashMap<>();
         login.put("email", email);
-        login.put("password", "password");
+        login.put("password", password);
 
         return RestAssured.given()
                 .contentType(ContentType.JSON)
@@ -61,12 +65,16 @@ public class MissionStepTest {
         return "Bearer " + loginSuccess(email);
     }
 
+    private String adminAuthorizationHeader() {
+        return "Bearer " + loginSuccess("admin1@email.com", "admin1");
+    }
+
     @Test
     void 예약_조회() {
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
-                .when().get("/reservations")
+                .when().get("/reservations/me")
                 .then().log().all()
                 .statusCode(200)
                 .body("size()", is(0)); // 아직 생성 요청이 없으니 0개
@@ -92,7 +100,7 @@ public class MissionStepTest {
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
-                .when().get("/reservations")
+                .when().get("/reservations/me")
                 .then().log().all()
                 .statusCode(200)
                 .body("size()", is(1));
@@ -107,7 +115,7 @@ public class MissionStepTest {
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
-                .when().get("/reservations")
+                .when().get("/reservations/me")
                 .then().log().all()
                 .statusCode(200)
                 .body("size()", is(0));
@@ -132,7 +140,7 @@ public class MissionStepTest {
         int size = RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
-                .when().get("/reservations")
+                .when().get("/reservations/me")
                 .then().log().all()
                 .statusCode(200).extract()
                 .jsonPath().getList(".").size();
@@ -182,7 +190,8 @@ public class MissionStepTest {
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
                 .body(params)
-                .when().post("/times")
+                .header("Authorization", adminAuthorizationHeader())
+                .when().post("/admin/times")
                 .then().log().all()
                 .statusCode(201);
 
@@ -193,7 +202,8 @@ public class MissionStepTest {
                 .body("size()", is(1));
 
         RestAssured.given().log().all()
-                .when().delete("/times/1")
+                .header("Authorization", adminAuthorizationHeader())
+                .when().delete("/admin/times/1")
                 .then().log().all()
                 .statusCode(204);
     }
@@ -217,7 +227,7 @@ public class MissionStepTest {
         RestAssured.given().log().all()
                 .header("Authorization", authorizationHeader())
                 .contentType(ContentType.JSON)
-                .when().get("/reservations")
+                .when().get("/reservations/me")
                 .then().log().all()
                 .statusCode(200)
                 .body("size()", is(1));
@@ -280,7 +290,8 @@ public class MissionStepTest {
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
                 .body(params)
-                .when().post("/themes")
+                .header("Authorization", adminAuthorizationHeader())
+                .when().post("/admin/themes")
                 .then().log().all()
                 .statusCode(201);
 
@@ -291,7 +302,8 @@ public class MissionStepTest {
                 .body("size()", is(1));
 
         RestAssured.given().log().all()
-                .when().delete("/themes/1")
+                .header("Authorization", adminAuthorizationHeader())
+                .when().delete("/admin/themes/1")
                 .then().log().all()
                 .statusCode(204);
 
@@ -545,10 +557,10 @@ public class MissionStepTest {
                 .statusCode(201);
 
         RestAssured.given().log().all()
-                .header("Authorization", authorizationHeader())
+                .header("Authorization", adminAuthorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
-                .when().delete("/times/1")
+                .when().delete("/admin/times/1")
                 .then().log().all()
                 .statusCode(409);
     }
@@ -556,8 +568,9 @@ public class MissionStepTest {
     @Test
     void 존재하지_않는_시간_삭제_시_404_에러_발생() {
         RestAssured.given().log().all()
+                .header("Authorization", adminAuthorizationHeader())
                 .contentType(ContentType.JSON)
-                .when().delete("/times/999")
+                .when().delete("/admin/times/999")
                 .then().log().all()
                 .statusCode(404);
     }
@@ -570,16 +583,18 @@ public class MissionStepTest {
         params.put("startAt", "10:00");
 
         RestAssured.given().log().all()
+                .header("Authorization", adminAuthorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
-                .when().post("/times")
+                .when().post("/admin/times")
                 .then().log().all()
                 .statusCode(201);
 
         RestAssured.given().log().all()
+                .header("Authorization", adminAuthorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
-                .when().post("/times")
+                .when().post("/admin/times")
                 .then().log().all()
                 .statusCode(409);
     }
@@ -601,10 +616,10 @@ public class MissionStepTest {
                 .statusCode(201);
 
         RestAssured.given().log().all()
-                .header("Authorization", authorizationHeader())
+                .header("Authorization", adminAuthorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
-                .when().delete("/themes/1")
+                .when().delete("/admin/themes/1")
                 .then().log().all()
                 .statusCode(409);
     }
@@ -612,8 +627,9 @@ public class MissionStepTest {
     @Test
     void 존재하지_않는_테마_삭제_시_404_에러_발생() {
         RestAssured.given().log().all()
+                .header("Authorization", adminAuthorizationHeader())
                 .contentType(ContentType.JSON)
-                .when().delete("/themes/999")
+                .when().delete("/admin/themes/999")
                 .then().log().all()
                 .statusCode(404);
     }
@@ -628,16 +644,18 @@ public class MissionStepTest {
         params.put("thumbnail", "썸네일 주소");
 
         RestAssured.given().log().all()
+                .header("Authorization", adminAuthorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
-                .when().post("/themes")
+                .when().post("/admin/themes")
                 .then().log().all()
                 .statusCode(201);
 
         RestAssured.given().log().all()
+                .header("Authorization", adminAuthorizationHeader())
                 .contentType(ContentType.JSON)
                 .body(params)
-                .when().post("/themes")
+                .when().post("/admin/themes")
                 .then().log().all()
                 .statusCode(409);
     }
@@ -765,7 +783,7 @@ public class MissionStepTest {
     void 비로그인_사용자_이름_예약_조회_시_401_에러_발생() {
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
-                .when().get("/reservations?name=브라운")
+                .when().get("/admin/reservations?name=브라운")
                 .then().log().all()
                 .statusCode(401);
     }
@@ -774,7 +792,7 @@ public class MissionStepTest {
     void 비로그인_전체_예약_조회_시_401_에러_발생() {
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
-                .when().get("/reservations")
+                .when().get("/admin/reservations")
                 .then().log().all()
                 .statusCode(401);
     }
@@ -864,6 +882,178 @@ public class MissionStepTest {
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().patch("/reservations/1")
+                .then().log().all()
+                .statusCode(403);
+    }
+
+    @Test
+    void 관리자_본인_매장의_얘약만_조회_테스트() {
+        jdbcTemplate.update(
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1, 1, "2099-08-05", 1, 1
+        );
+        jdbcTemplate.update(
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                2, 2, "2099-08-05", 2, 1
+        );
+
+        Integer count = jdbcTemplate.queryForObject("SELECT count(1) FROM reservation", Integer.class);
+        assertThat(count).isEqualTo(2);
+
+        RestAssured.given().log().all()
+                .header("Authorization", adminAuthorizationHeader())
+                .contentType(ContentType.JSON)
+                .when().get("/admin/reservations")
+                .then().log().all()
+                .statusCode(200)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void 관리자_본인_매장의_얘약만_사용자_이름으로_조회_테스트() {
+        jdbcTemplate.update(
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1, 1, "2099-08-05", 1, 1
+        );
+        jdbcTemplate.update(
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1, 2, "2099-08-05", 2, 1
+        );
+
+        Integer count = jdbcTemplate.queryForObject("SELECT count(1) FROM reservation", Integer.class);
+        assertThat(count).isEqualTo(2);
+
+        RestAssured.given().log().all()
+                .header("Authorization", adminAuthorizationHeader())
+                .contentType(ContentType.JSON)
+                .queryParam("name", "브라운")
+                .when().get("/admin/reservations")
+                .then().log().all()
+                .statusCode(200)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void 일반사용자_얘약_조회_403_에러_발생() {
+        RestAssured.given().log().all()
+                .header("Authorization", authorizationHeader("jerry@email.com"))
+                .contentType(ContentType.JSON)
+                .when().get("/admin/reservations")
+                .then().log().all()
+                .statusCode(403);
+    }
+
+    @Test
+    void 매장_목록_조회() {
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .when().get("/stores")
+                .then().log().all()
+                .statusCode(200);
+    }
+
+    @Test
+    void 관리자_본인_매장의_예약_생성_테스트() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("memberId", 1);
+        params.put("date", "2099-08-05");
+        params.put("timeId", 1);
+        params.put("themeId", 1);
+        params.put("storeId", 1);
+
+        RestAssured.given().log().all()
+                .header("Authorization", adminAuthorizationHeader())
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/admin/reservations")
+                .then().log().all()
+                .statusCode(201);
+    }
+
+    @Test
+    void 관리자_본인_매장이_아닌_다른_매장의_예약_생성_시_403_에러_발생() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("memberId", 1);
+        params.put("date", "2099-08-05");
+        params.put("timeId", 1);
+        params.put("themeId", 1);
+        params.put("storeId", 2);
+
+        RestAssured.given().log().all()
+                .header("Authorization", adminAuthorizationHeader())
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/admin/reservations")
+                .then().log().all()
+                .statusCode(403);
+    }
+
+    @Test
+    void 관리자_본인_매장_예약_수정_테스트() {
+        jdbcTemplate.update(
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1, 1, "2099-08-05", 1, 1
+        );
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("date", "2099-08-06");
+        params.put("timeId", 2);
+
+        RestAssured.given().log().all()
+                .header("Authorization", adminAuthorizationHeader())
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().patch("/admin/reservations/1")
+                .then().log().all()
+                .statusCode(200);
+    }
+
+    @Test
+    void 관리자_본인_매장이_아닌_다른_매장의_예약_수정_시_403_에러_발생() {
+        jdbcTemplate.update(
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1, 2, "2099-08-05", 1, 1
+        );
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("date", "2099-08-06");
+        params.put("timeId", 2);
+
+        RestAssured.given().log().all()
+                .header("Authorization", adminAuthorizationHeader())
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().patch("/admin/reservations/1")
+                .then().log().all()
+                .statusCode(403);
+    }
+
+    @Test
+    void 관리자_본인_매장_예약_삭제_테스트() {
+        jdbcTemplate.update(
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1, 1, "2099-08-05", 1, 1
+        );
+
+        RestAssured.given().log().all()
+                .header("Authorization", adminAuthorizationHeader())
+                .contentType(ContentType.JSON)
+                .when().delete("/admin/reservations/1")
+                .then().log().all()
+                .statusCode(204);
+    }
+
+    @Test
+    void 관리자_본인_매장이_아닌_다른_매장의_예약_삭제_시_403_에러_발생() {
+        jdbcTemplate.update(
+                "INSERT INTO reservation (member_id, store_id, date, time_id, theme_id) VALUES (?, ?, ?, ?, ?)",
+                1, 2, "2099-08-05", 1, 1
+        );
+
+        RestAssured.given().log().all()
+                .header("Authorization", adminAuthorizationHeader())
+                .contentType(ContentType.JSON)
+                .when().delete("/admin/reservations/1")
                 .then().log().all()
                 .statusCode(403);
     }

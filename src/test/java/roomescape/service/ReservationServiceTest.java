@@ -62,30 +62,31 @@ class ReservationServiceTest {
     }
 
     @Test
-    void 전체_예약_조회_테스트() {
+    void 사용자_예약_조회_테스트() {
         // given
         reservationService.create(brown, date, 1L, 1L, 1L);
         reservationService.create(jerry, date, 2L, 1L, 1L);
 
         // when
-        List<Reservation> result = reservationService.findAll(null);
+        List<Reservation> result = reservationService.findByMember(brown);
 
         // then
-        assertThat(result).hasSize(2);
+        assertThat(result).hasSize(1);
     }
 
     @Test
-    void 사용자_이름으로_예약_조회_테스트() {
+    void 사용자_본인의_예약만_조회_테스트() {
         // given
         reservationService.create(brown, date, 1L, 1L, 1L);
         reservationService.create(brown, date, 2L, 1L, 1L);
-        reservationService.create(brown, date, 3L, 1L, 1L);
+        reservationService.create(jerry, date, 3L, 1L, 1L);
 
         // when
-        List<Reservation> result = reservationService.findAll("브라운");
+        List<Reservation> result = reservationService.findByMember(brown);
 
         // then
-        assertThat(result).hasSize(3);
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(reservation -> reservation.isSameMember(brown));
     }
 
     @Test
@@ -97,7 +98,7 @@ class ReservationServiceTest {
         reservationService.delete(brown, created.getId());
 
         // then
-        assertThat(reservationService.findAll(null)).isEmpty();
+        assertThat(reservationService.findByMember(brown)).isEmpty();
     }
 
     @Test

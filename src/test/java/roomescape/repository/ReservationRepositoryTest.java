@@ -47,8 +47,8 @@ class ReservationRepositoryTest {
         Reservation reservation = new Reservation(TEST1, DATE, time, theme, STORE, TEST_DATE_TIME);
 
         // when & then
-        Reservation savedReservation = reservationRepository.insert(reservation);
-        List<Reservation> reservations = reservationRepository.findAll();
+        Reservation savedReservation = reservationRepository.insert(reservation, STORE.getId());
+        List<Reservation> reservations = reservationRepository.findByStoreId(STORE.getId());
         assertAll(
                 () -> assertThat(reservations).hasSize(1),
                 () -> assertThat(savedReservation.getId()).isNotNull(),
@@ -67,14 +67,14 @@ class ReservationRepositoryTest {
         Theme theme2 = new Theme(2L, "테마 이름2", "테마 설명2", "썸네일2");
         Reservation reservation1 = new Reservation(TEST1, DATE, time1, theme1, STORE, TEST_DATE_TIME);
         Reservation reservation2 = new Reservation(TEST2, DATE, time2, theme2, STORE, TEST_DATE_TIME);
-        Long id1 = reservationRepository.insert(reservation1).getId();
-        Long id2 = reservationRepository.insert(reservation2).getId();
+        Long id1 = reservationRepository.insert(reservation1, STORE.getId()).getId();
+        Long id2 = reservationRepository.insert(reservation2, STORE.getId()).getId();
 
         // when
         int deletedCount = reservationRepository.delete(id1);
 
         // then
-        List<Reservation> reservations = reservationRepository.findAll();
+        List<Reservation> reservations = reservationRepository.findByStoreId(STORE.getId());
         assertAll(
                 () -> assertThat(deletedCount).isEqualTo(1),
                 () -> assertThat(reservations).hasSize(1),
