@@ -1,0 +1,28 @@
+package roomescape.domain;
+
+public class Store {
+
+    private final Long id;
+    private final String name;
+
+    public Store(Long id, String name) {
+        validateName(name);
+
+        this.id = id;
+        this.name = name;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    private void validateName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("매장 이름은 비어 있을 수 없습니다.");
+        }
+    }
+}
