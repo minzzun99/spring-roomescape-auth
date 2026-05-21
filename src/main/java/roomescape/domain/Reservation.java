@@ -11,21 +11,24 @@ public class Reservation {
     private final LocalDate date;
     private final ReservationTime time;
     private final Theme theme;
+    private final Store store;
 
-    public Reservation(Long id, Member member, LocalDate date, ReservationTime time, Theme theme) {
+    public Reservation(Long id, Member member, LocalDate date, ReservationTime time, Theme theme, Store store) {
         validateDate(date);
         validateTime(time);
         validateTheme(theme);
+        validateStore(store);
 
         this.id = id;
         this.member = member;
         this.date = date;
         this.time = time;
         this.theme = theme;
+        this.store = store;
     }
 
-    public Reservation(Member member, LocalDate date, ReservationTime time, Theme theme, LocalDateTime now) {
-        this(null, member, date, time, theme);
+    public Reservation(Member member, LocalDate date, ReservationTime time, Theme theme, Store store, LocalDateTime now) {
+        this(null, member, date, time, theme, store);
         validateCreatable(date, time, now);
     }
 
@@ -49,6 +52,10 @@ public class Reservation {
         return theme;
     }
 
+    public String getStoreName() {
+        return store.getName();
+    }
+
     public Reservation update(LocalDate updateDate, ReservationTime updateTime, LocalDateTime now) {
         LocalDateTime targetDateAndTime = LocalDateTime.of(this.date, this.time.getStartAt());
         validateNotPast(targetDateAndTime, now, "지난 날짜의 예약은 변경할 수 없습니다. 현재 이후의 예약을 선택해주세요.");
@@ -56,7 +63,7 @@ public class Reservation {
         LocalDateTime updateDateAndTime = LocalDateTime.of(updateDate, updateTime.getStartAt());
         validateNotPast(updateDateAndTime, now, "지난 날짜로 예약을 변경할 수 없습니다. 현재 이후의 날짜를 선택해주세요.");
 
-        return new Reservation(this.id, this.member, updateDate, updateTime, this.theme);
+        return new Reservation(this.id, this.member, updateDate, updateTime, this.theme, this.store);
     }
 
     public Long getCancelId(LocalDateTime now) {
@@ -107,6 +114,12 @@ public class Reservation {
     private void validateTheme(Theme theme) {
         if (theme == null) {
             throw new IllegalArgumentException("테마는 비어있을 수 없습니다. 테마를 선택해주세요.");
+        }
+    }
+
+    private void validateStore(Store store) {
+        if (store == null) {
+            throw new IllegalArgumentException("매장은 비어있을 수 없습니다. 매장을 선택해주세요.");
         }
     }
 }

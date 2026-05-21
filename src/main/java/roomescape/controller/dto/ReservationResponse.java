@@ -8,7 +8,8 @@ public record ReservationResponse(
         String name,
         LocalDate date,
         ReservationTimeResponse time,
-        ThemeResponse theme
+        ThemeResponse theme,
+        String storeName
 ) {
 
     public static ReservationResponse from(Reservation reservation) {
@@ -17,6 +18,7 @@ public record ReservationResponse(
                 reservation.getMember().getName(),
                 reservation.getDate(),
                 ReservationTimeResponse.from(reservation.getTime()),
-                ThemeResponse.from(reservation.getTheme()));
+                ThemeResponse.from(reservation.getTheme()),
+                reservation.getStoreName());
     }
 }

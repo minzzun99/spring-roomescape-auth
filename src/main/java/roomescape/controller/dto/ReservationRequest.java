@@ -13,6 +13,9 @@ public record ReservationRequest(
         Long timeId,
 
         @NotNull(message = ValidationMessage.THEME_ID_IS_NULL)
-        Long themeId
+        Long themeId,
+
+        @NotNull(message = ValidationMessage.STORE_ID_IS_NULL)
+        Long storeId
 ) {
 }

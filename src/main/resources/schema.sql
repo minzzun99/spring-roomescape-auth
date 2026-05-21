@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS member (
 
 CREATE TABLE IF NOT EXISTS store (
     id          BIGINT          NOT NULL AUTO_INCREMENT,
-    name        VARCHAR(100)    NOT NULL,
+    name        VARCHAR(50)    NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (name)
 );
